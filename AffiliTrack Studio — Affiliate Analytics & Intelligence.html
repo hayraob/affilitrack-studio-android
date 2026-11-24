@@ -1,3 +1,2740 @@
-The requested file reference is not currently visible. Use files.search or files.list to rediscover the file, then retry with a returned ref_id or file_id.
-The requested file reference is not currently visible. Use files.search or files.list to rediscover the file, then retry with a returned ref_id or file_id.
-The requested file reference is not currently visible. Use files.search or files.list to rediscover the file, then retry with a returned ref_id or file_id.
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>AffiliTrack Studio — Affiliate Analytics &amp; Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          },
+          colors: {
+            canvas: '#F7F7F5',
+            surface: '#FFFFFF',
+            ink: { DEFAULT: '#111214', muted: '#666A73', subtle: '#9498A1' },
+            hairline: '#E6E6E1',
+          },
+          boxShadow: {
+            card: '0 1px 2px rgba(17, 18, 20, 0.04), 0 0 0 1px rgba(17, 18, 20, 0.05)',
+            elevated: '0 14px 36px -10px rgba(17, 18, 20, 0.14), 0 0 0 1px rgba(17, 18, 20, 0.06)',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --bg-canvas: #F7F7F5;
+      --bg-surface: #FFFFFF;
+      --bg-subtle: #F2F2EE;
+      --text-ink: #111214;
+      --text-muted: #666A73;
+      --text-subtle: #9498A1;
+      --border-hairline: #E6E6E1;
+      --border-strong: #D2D2CB;
+    }
+    html.dark {
+      --bg-canvas: #0E0F11;
+      --bg-surface: #16181C;
+      --bg-subtle: #1E2026;
+      --text-ink: #F4F4F2;
+      --text-muted: #9CA1AC;
+      --text-subtle: #6E737E;
+      --border-hairline: #262930;
+      --border-strong: #343842;
+    }
+    html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-ink);
+      font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+      overflow-x: hidden;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .num {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    .card-surface {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+    .card-hover:hover {
+      border-color: var(--border-strong);
+      box-shadow: 0 8px 22px -12px rgba(17, 18, 20, 0.14);
+    }
+    .subtle-box {
+      background-color: var(--bg-subtle);
+      border: 1px solid var(--border-hairline);
+    }
+    .muted-text { color: var(--text-muted); }
+    .subtle-text { color: var(--text-subtle); }
+
+    @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeSlide { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulseDot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.65); opacity: 0.35; } }
+    @keyframes spinSlow { to { transform: rotate(360deg); } }
+    @keyframes shimmerMove { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    .animate-rise { animation: riseIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .animate-panel { animation: fadeSlide 0.25s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .live-ring::before {
+      content: ''; position: absolute; inset: 0; border-radius: 9999px; background: currentColor;
+      animation: pulseDot 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .spin-ring { animation: spinSlow 1.15s linear infinite; }
+    .progress-shimmer {
+      background: linear-gradient(90deg, #111214 0%, #059669 50%, #111214 100%);
+      background-size: 200% 100%;
+      animation: shimmerMove 1.3s linear infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .animate-rise, .animate-panel, .live-ring::before, .spin-ring, .progress-shimmer { animation: none !important; transition: none !important; }
+    }
+
+    .nav-tab[aria-selected="true"] { background: #111214; color: #FFFFFF; }
+    html.dark .nav-tab[aria-selected="true"] { background: #F4F4F2; color: #111214; }
+    .nav-tab[aria-selected="false"] { color: var(--text-muted); }
+    .nav-tab[aria-selected="false"]:hover { color: var(--text-ink); background: var(--bg-subtle); }
+
+    .mobile-tab[aria-selected="true"] { color: var(--text-ink); }
+    .mobile-tab[aria-selected="true"] .mob-indicator { opacity: 1; transform: scaleX(1); }
+    .mobile-tab[aria-selected="false"] { color: var(--text-subtle); }
+    .mob-indicator { opacity: 0; transform: scaleX(0.4); transition: all 0.2s ease; }
+
+    .safe-bottom { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+    .scrollbar-thin::-webkit-scrollbar { height: 5px; width: 5px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #C8C8C1; border-radius: 9999px; }
+
+    @media print {
+      header, nav, #mobileFilterSummary, #desktopFilterBar, #toastContainer, #globalDropOverlay, #processingOverlay, .no-print { display: none !important; }
+      body { background: #FFFFFF !important; color: #111214 !important; padding: 0 !important; }
+      .tab-panel { display: block !important; page-break-inside: avoid; margin-bottom: 20px; }
+      .card-surface { box-shadow: none !important; border: 1px solid #DDD !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-24 md:pb-12">
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-[80] flex flex-col gap-2 max-w-xs sm:max-w-sm w-[calc(100%-2rem)] pointer-events-none"></div>
+
+  <!-- Hidden File Input -->
+  <input id="fileInput" type="file" accept=".xlsx,.xls,.csv" class="hidden" />
+
+  <!-- Global Drag & Drop Overlay -->
+  <div id="globalDropOverlay" class="fixed inset-0 z-[75] hidden items-center justify-center bg-[#111214]/60 backdrop-blur-md p-6">
+    <div class="card-surface rounded-3xl border-2 border-dashed border-emerald-500 p-8 sm:p-12 max-w-md w-full text-center shadow-elevated animate-rise">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-4">
+        <i data-lucide="file-up" class="w-8 h-8"></i>
+      </div>
+      <h3 class="text-lg font-bold">Lepaskan Laporan Affiliate di Sini</h3>
+      <p id="dropReplaceNote" class="text-xs sm:text-sm muted-text mt-1.5">Mendukung .xlsx, .xls, dan .csv — diproses lokal di browser Anda.</p>
+    </div>
+  </div>
+
+  <!-- Multi-Step Processing Overlay -->
+  <div id="processingOverlay" class="fixed inset-0 z-[78] hidden items-center justify-center bg-[#111214]/60 backdrop-blur-sm p-4">
+    <div class="card-surface rounded-3xl shadow-elevated max-w-md w-full p-6 sm:p-7 animate-rise">
+      <div class="flex items-center gap-3.5 mb-5">
+        <div class="relative w-11 h-11 rounded-2xl bg-[#111214] dark:bg-white text-white dark:text-[#111214] flex items-center justify-center shrink-0">
+          <i data-lucide="cpu" class="w-5 h-5"></i>
+          <span class="absolute -inset-1 rounded-2xl border-2 border-emerald-500/40 border-t-emerald-500 spin-ring"></span>
+        </div>
+        <div class="min-w-0">
+          <h3 class="text-sm sm:text-base font-bold">Memproses Laporan Affiliate</h3>
+          <p id="procFileLabel" class="text-xs muted-text truncate">Membaca file...</p>
+        </div>
+      </div>
+      <div class="h-1.5 w-full rounded-full overflow-hidden mb-5 subtle-box">
+        <div id="procProgressBar" class="h-full progress-shimmer rounded-full transition-all duration-300" style="width: 10%"></div>
+      </div>
+      <ol id="procSteps" class="space-y-2.5 text-xs sm:text-sm">
+        <li data-step="0" class="flex items-center gap-2.5 muted-text"><span class="step-dot w-5 h-5 rounded-full border border-[#D2D2CB] flex items-center justify-center text-[10px] shrink-0">1</span><span>Deteksi kolom &amp; struktur sheet otomatis</span></li>
+        <li data-step="1" class="flex items-center gap-2.5 muted-text"><span class="step-dot w-5 h-5 rounded-full border border-[#D2D2CB] flex items-center justify-center text-[10px] shrink-0">2</span><span>Pembersihan angka, pajak, status &amp; cek duplikat baris</span></li>
+        <li data-step="2" class="flex items-center gap-2.5 muted-text"><span class="step-dot w-5 h-5 rounded-full border border-[#D2D2CB] flex items-center justify-center text-[10px] shrink-0">3</span><span>Kalkulasi metrik finansial, tren &amp; perbandingan periode</span></li>
+        <li data-step="3" class="flex items-center gap-2.5 muted-text"><span class="step-dot w-5 h-5 rounded-full border border-[#D2D2CB] flex items-center justify-center text-[10px] shrink-0">4</span><span>Menjalankan mesin Business Insights lokal (tanpa API)</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Top Header -->
+  <header class="sticky top-0 z-40 backdrop-blur-md border-b border-[var(--border-hairline)]" style="background-color: color-mix(in srgb, var(--bg-canvas) 90%, transparent);">
+    <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2.5">
+      <!-- Brand -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-[#111214] dark:bg-white text-white dark:text-[#111214] flex items-center justify-center shrink-0">
+          <i data-lucide="activity" class="w-4 h-4"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-extrabold tracking-tight truncate">AffiliTrack Studio</h1>
+            <span id="headerStatusPill" class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold subtle-box muted-text">Siap Upload</span>
+          </div>
+          <p id="headerSubtitle" class="text-[11px] muted-text truncate">Belum ada laporan aktif</p>
+        </div>
+      </div>
+
+      <!-- Desktop Navigation Pills -->
+      <nav aria-label="Navigasi Utama" class="hidden lg:flex items-center gap-1 card-surface rounded-full p-1">
+        <button type="button" class="nav-tab px-3 py-1.5 rounded-full text-xs font-semibold transition" data-tab="overview" aria-selected="true">Ringkasan</button>
+        <button type="button" class="nav-tab px-3 py-1.5 rounded-full text-xs font-semibold transition" data-tab="products" aria-selected="false">Produk &amp; Toko</button>
+        <button type="button" class="nav-tab px-3 py-1.5 rounded-full text-xs font-semibold transition" data-tab="insights" aria-selected="false">Business Insights</button>
+        <button type="button" class="nav-tab px-3 py-1.5 rounded-full text-xs font-semibold transition" data-tab="orders" aria-selected="false">Pesanan</button>
+        <button type="button" class="nav-tab px-3 py-1.5 rounded-full text-xs font-semibold transition inline-flex items-center gap-1.5" data-tab="radar" aria-selected="false">
+          <span class="relative w-1.5 h-1.5 rounded-full bg-emerald-500 live-ring"></span>
+          <span>Radar Promo</span>
+        </button>
+      </nav>
+
+      <!-- Header Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <button id="btnThemeToggle" type="button" aria-label="Ubah tema terang/gelap" title="Mode Terang / Gelap" class="w-9 h-9 rounded-xl card-surface flex items-center justify-center hover:opacity-80 active:scale-95 transition">
+          <i id="themeIcon" data-lucide="moon" class="w-4 h-4"></i>
+        </button>
+        <button id="btnOpenFilterSheet" type="button" aria-label="Buka Filter" class="hidden md:hidden relative w-9 h-9 rounded-xl card-surface flex items-center justify-center active:scale-95 transition">
+          <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+          <span id="mobileFilterDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-600"></span>
+        </button>
+        <button id="btnOpenMapping" type="button" title="Pemetaan Kolom & Kualitas Data" class="hidden items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl text-xs font-semibold card-surface hover:opacity-85 active:scale-95 transition">
+          <i data-lucide="columns-3" class="w-3.5 h-3.5"></i>
+          <span class="hidden xl:inline">Kolom</span>
+        </button>
+        <button id="btnOpenExport" type="button" title="Export Excel, CSV, atau PDF" class="hidden items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl text-xs font-semibold card-surface hover:opacity-85 active:scale-95 transition">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Export</span>
+        </button>
+        <button id="btnResetData" type="button" title="Hapus laporan aktif dan kembali ke keadaan kosong" class="hidden items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl text-xs font-semibold border border-rose-300/80 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/50 active:scale-95 transition">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Reset Data Analisis</span>
+        </button>
+        <button id="btnUploadTrigger" type="button" class="inline-flex items-center gap-1.5 h-9 px-3 sm:px-3.5 rounded-xl text-xs font-semibold bg-[#111214] dark:bg-white text-white dark:text-[#111214] hover:opacity-90 active:scale-95 transition">
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+          <span>Upload</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 space-y-5">
+
+    <!-- ===================================================== -->
+    <!-- EMPTY STATE (SHOWN ON FIRST LAUNCH & AFTER RESET)     -->
+    <!-- ===================================================== -->
+    <section id="emptyStateView" class="animate-rise space-y-6 py-4 sm:py-8">
+      <div class="card-surface rounded-3xl p-6 sm:p-10 lg:p-12 max-w-3xl mx-auto text-center shadow-card">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-[#111214] dark:bg-white text-white dark:text-[#111214] flex items-center justify-center mb-5">
+          <i data-lucide="file-spreadsheet" class="w-7 h-7"></i>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Belum ada data analisis.</h2>
+        <p class="text-xs sm:text-sm muted-text mt-2 max-w-xl mx-auto leading-relaxed">
+          Upload laporan affiliate Anda (<span class="font-semibold text-[var(--text-ink)]">.xlsx, .xls, atau .csv</span>) untuk memulai analisis komisi, GMV, tren penjualan, performa produk &amp; konten, serta rekomendasi bisnis otomatis — 100% diproses lokal di perangkat Anda tanpa API berbayar.
+        </p>
+
+        <!-- Primary Dropzone -->
+        <div id="emptyDropZone" role="button" tabindex="0" aria-label="Upload laporan affiliate"
+          class="mt-7 border-2 border-dashed border-[var(--border-strong)] hover:border-emerald-600 rounded-2xl p-6 sm:p-8 cursor-pointer transition subtle-box">
+          <div class="flex flex-col items-center gap-2.5">
+            <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#111214] dark:bg-white text-white dark:text-[#111214] shadow-sm">
+              <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+              <span>Pilih File Laporan Affiliate</span>
+            </span>
+            <p class="text-xs muted-text mt-1">Atau tarik &amp; lepas file Excel / CSV langsung ke area ini</p>
+          </div>
+        </div>
+
+        <!-- Optional Remember Setting (Explicit Opt-In, OFF by default) -->
+        <div class="mt-5 flex flex-wrap items-center justify-center gap-4 text-xs muted-text">
+          <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+            <input id="chkRememberLast" type="checkbox" class="rounded border-[var(--border-strong)] accent-emerald-600 w-4 h-4" />
+            <span>Ingat laporan terakhir di browser ini (opsional)</span>
+          </label>
+          <span class="hidden sm:inline text-[var(--border-strong)]">•</span>
+          <button id="btnEmptyGoRadar" type="button" class="inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400 hover:underline">
+            <span class="relative w-1.5 h-1.5 rounded-full bg-emerald-500 live-ring"></span>
+            <span>Lihat Radar Promo Indonesia</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Neutral Capability Overview (NO sample numbers or fake data) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8 pt-6 border-t border-[var(--border-hairline)] text-left">
+          <div class="p-3.5 rounded-2xl subtle-box">
+            <p class="text-xs font-bold">Deteksi Kolom &amp; Anti-Duplikat</p>
+            <p class="text-[11px] muted-text mt-1">Mengenali format laporan berbeda secara dinamis serta membedakan multi-SKU dalam 1 ID pesanan.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl subtle-box">
+            <p class="text-xs font-bold">Business Insights Lokal</p>
+            <p class="text-[11px] muted-text mt-1">Evaluasi performa, peluang promosi konten, rencana aksi &amp; proyeksi tren otomatis tanpa API key.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl subtle-box">
+            <p class="text-xs font-bold">Export Excel, CSV &amp; PDF</p>
+            <p class="text-[11px] muted-text mt-1">Unduh laporan lengkap multi-sheet, ringkasan komisi, dan rekomendasi yang siap dibagikan.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- ACTIVE DASHBOARD WRAPPER (HIDDEN UNTIL FILE UPLOADED) -->
+    <!-- ===================================================== -->
+    <div id="activeDashboard" class="hidden space-y-5">
+
+      <!-- Desktop Filter Bar -->
+      <section id="desktopFilterBar" class="hidden md:flex items-center justify-between gap-3 card-surface rounded-2xl px-4 py-3">
+        <div class="flex items-center gap-2 flex-wrap flex-1">
+          <div class="flex items-center gap-1.5 subtle-box rounded-xl px-2.5 h-9">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 muted-text"></i>
+            <input id="filterDateFrom" type="date" aria-label="Dari tanggal" class="bg-transparent text-xs font-medium focus:outline-none" />
+            <span class="subtle-text text-xs">–</span>
+            <input id="filterDateTo" type="date" aria-label="Sampai tanggal" class="bg-transparent text-xs font-medium focus:outline-none" />
+          </div>
+
+          <select id="filterStatus" aria-label="Filter status" class="h-9 rounded-xl subtle-box px-3 text-xs font-medium focus:outline-none">
+            <option value="ALL">Semua Status</option>
+          </select>
+
+          <select id="filterShop" aria-label="Filter toko" class="h-9 max-w-[180px] rounded-xl subtle-box px-3 text-xs font-medium focus:outline-none">
+            <option value="ALL">Semua Toko</option>
+          </select>
+
+          <select id="filterContentType" aria-label="Filter jenis konten" class="h-9 rounded-xl subtle-box px-3 text-xs font-medium focus:outline-none">
+            <option value="ALL">Semua Konten</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="inline-flex rounded-xl subtle-box p-0.5 text-xs">
+            <button type="button" data-preset="ALL" class="preset-btn px-2.5 py-1 rounded-lg font-semibold bg-[var(--bg-surface)] shadow-xs">Semua</button>
+            <button type="button" data-preset="7D" class="preset-btn px-2.5 py-1 rounded-lg font-medium muted-text">7H</button>
+            <button type="button" data-preset="14D" class="preset-btn px-2.5 py-1 rounded-lg font-medium muted-text">14H</button>
+            <button type="button" data-preset="30D" class="preset-btn px-2.5 py-1 rounded-lg font-medium muted-text">30H</button>
+          </div>
+          <button id="btnResetFilters" type="button" class="h-9 px-2.5 rounded-xl text-xs font-semibold muted-text hover:opacity-80 transition">Reset Filter</button>
+        </div>
+      </section>
+
+      <!-- Mobile Filter Status Strip -->
+      <div id="mobileFilterSummary" class="flex md:hidden items-center justify-between gap-2 text-xs muted-text px-0.5">
+        <span id="mobileFilterText" class="truncate">-</span>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="btnMobileReset" type="button" class="hidden font-semibold underline">Reset Filter</button>
+        </div>
+      </div>
+
+      <!-- TAB 1: RINGKASAN & TREN -->
+      <section id="tab-overview" class="tab-panel animate-panel space-y-5">
+        <!-- Top Business Insight Highlight Strip (Requirement 8) -->
+        <div id="topInsightBanner" class="card-surface rounded-2xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-start sm:items-center gap-3 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+              <i data-lucide="lightbulb" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Sorotan Business Insights</span>
+                <span class="text-[10px] font-medium px-1.5 py-0.5 rounded subtle-box muted-text">Dihitung Lokal (Tanpa API)</span>
+              </div>
+              <p id="topInsightText" class="text-xs sm:text-sm font-semibold mt-0.5 leading-snug">-</p>
+            </div>
+          </div>
+          <button id="btnJumpToInsights" type="button" class="shrink-0 inline-flex items-center justify-center gap-1 h-8 px-3 rounded-lg text-xs font-semibold subtle-box hover:opacity-85 transition">
+            <span>Buka Insights</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Hero Financial Bento -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <!-- Primary Obsidian Card -->
+          <div class="lg:col-span-5 bg-[#111214] dark:bg-[#1A1D24] text-white rounded-3xl p-5 sm:p-6 flex flex-col justify-between shadow-elevated border border-white/10">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-[11px] font-semibold uppercase tracking-widest text-white/60">Total Penghasilan Akhir (Aktual)</p>
+                <p id="kpiFinalEarnings" class="num text-3xl sm:text-4xl font-bold tracking-tight mt-2">Rp 0</p>
+                <p id="kpiValidPotentialSub" class="text-xs text-white/65 mt-1.5">Est. Komisi Valid: Rp 0</p>
+              </div>
+              <span id="kpiPaidRatePill" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/25 shrink-0">0% Cair</span>
+            </div>
+
+            <div class="mt-6">
+              <div class="flex items-center justify-between text-[11px] text-white/70 mb-1.5">
+                <span>Proporsi Komisi (Cair • Proses • Belum)</span>
+                <span id="kpiHeroOrdersText" class="num">0 pesanan</span>
+              </div>
+              <div class="h-2 w-full rounded-full bg-white/10 overflow-hidden flex">
+                <div id="barPaid" class="h-full bg-emerald-400 transition-all duration-700" style="width:0%"></div>
+                <div id="barProcessing" class="h-full bg-sky-400 transition-all duration-700" style="width:0%"></div>
+                <div id="barUnpaid" class="h-full bg-amber-400 transition-all duration-700" style="width:0%"></div>
+              </div>
+              <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/10 text-xs">
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider text-white/50">Total GMV</p>
+                  <p id="kpiTotalGmv" class="num font-semibold text-white mt-0.5 truncate">Rp 0</p>
+                </div>
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider text-white/50">Unit Netto</p>
+                  <p id="kpiNetUnits" class="num font-semibold text-white mt-0.5 truncate">0</p>
+                </div>
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider text-white/50">AOV / Pesanan</p>
+                  <p id="kpiAov" class="num font-semibold text-white mt-0.5 truncate">Rp 0</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2x2 Commission Status Cards -->
+          <div class="lg:col-span-7 grid grid-cols-2 gap-3.5">
+            <div class="card-surface card-hover rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-semibold muted-text">Sudah Dibayar</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              </div>
+              <div class="mt-3">
+                <p id="kpiPaidComm" class="num text-xl sm:text-2xl font-bold">Rp 0</p>
+                <p id="kpiPaidSub" class="text-[11px] muted-text mt-1">-</p>
+              </div>
+            </div>
+
+            <div class="card-surface card-hover rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-semibold muted-text">Sedang Diproses</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+              </div>
+              <div class="mt-3">
+                <p id="kpiProcessingComm" class="num text-xl sm:text-2xl font-bold">Rp 0</p>
+                <p id="kpiProcessingSub" class="text-[11px] muted-text mt-1">-</p>
+              </div>
+            </div>
+
+            <div class="card-surface card-hover rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-semibold muted-text">Belum Dibayar</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+              </div>
+              <div class="mt-3">
+                <p id="kpiUnpaidComm" class="num text-xl sm:text-2xl font-bold">Rp 0</p>
+                <p id="kpiUnpaidSub" class="text-[11px] muted-text mt-1">-</p>
+              </div>
+            </div>
+
+            <div class="card-surface card-hover rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-semibold muted-text">Tidak Memenuhi Syarat</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+              </div>
+              <div class="mt-3">
+                <p id="kpiIneligibleComm" class="num text-xl sm:text-2xl font-bold text-rose-700 dark:text-rose-400">Rp 0</p>
+                <p id="kpiIneligibleSub" class="text-[11px] muted-text mt-1">-</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Secondary Financial Breakdown Strip (Estimated vs Actual, Bonus, Taxes, Refunds, Period Comparison) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div class="card-surface rounded-2xl p-4">
+            <p class="text-[11px] font-semibold muted-text">Estimasi vs Aktual</p>
+            <p id="kpiEstTotal" class="num text-base font-bold mt-1">Rp 0</p>
+            <p id="kpiEstVsActSub" class="text-[11px] muted-text mt-0.5">Aktual: Rp 0</p>
+          </div>
+          <div class="card-surface rounded-2xl p-4">
+            <p class="text-[11px] font-semibold muted-text">Bonus &amp; Pajak/Potongan</p>
+            <p id="kpiBonusTotal" class="num text-base font-bold mt-1">Rp 0</p>
+            <p id="kpiTaxTotalSub" class="text-[11px] muted-text mt-0.5">Pajak/Potongan: Rp 0</p>
+          </div>
+          <div class="card-surface rounded-2xl p-4">
+            <p class="text-[11px] font-semibold muted-text">Unit Terjual &amp; Refund</p>
+            <p id="kpiUnitsGross" class="num text-base font-bold mt-1">0 unit</p>
+            <p id="kpiRefundSub" class="text-[11px] muted-text mt-0.5">Refund: 0 unit (0%)</p>
+          </div>
+          <div class="card-surface rounded-2xl p-4">
+            <p class="text-[11px] font-semibold muted-text">Perbandingan Periode</p>
+            <p id="kpiPopDelta" class="num text-base font-bold mt-1">-</p>
+            <p id="kpiPopSub" class="text-[11px] muted-text mt-0.5 truncate">-</p>
+          </div>
+        </div>
+
+        <!-- Metric Definitions Toggle -->
+        <details class="card-surface rounded-2xl px-4 py-3 text-xs">
+          <summary class="cursor-pointer font-semibold flex items-center justify-between select-none">
+            <span>Transparansi Rumus Perhitungan &amp; Sumber Kolom</span>
+            <span class="muted-text text-[11px]">Klik untuk detail</span>
+          </summary>
+          <div id="formulaAuditBody" class="mt-3 pt-3 border-t border-[var(--border-hairline)] grid grid-cols-1 md:grid-cols-2 gap-3 muted-text leading-relaxed"></div>
+        </details>
+
+        <!-- Main Time-Series Trend Chart -->
+        <div class="card-surface rounded-3xl p-5 sm:p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+            <div>
+              <h2 class="text-base font-bold">Tren Penjualan, GMV &amp; Komisi</h2>
+              <p id="trendSubtitle" class="text-xs muted-text mt-0.5">Pergerakan berdasarkan tanggal pesanan</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="trendMetric" aria-label="Metrik grafik tren" class="h-9 rounded-xl subtle-box px-3 text-xs font-semibold focus:outline-none">
+                <option value="commission">Komisi (Cair / Pending / Batal)</option>
+                <option value="gmv">GMV (Nilai Penjualan)</option>
+                <option value="units">Unit Terjual</option>
+                <option value="orders">Jumlah Pesanan Unik</option>
+                <option value="settlement">Tren Pencairan Komisi (Tgl Cair)</option>
+              </select>
+              <div class="inline-flex rounded-xl subtle-box p-0.5 text-xs">
+                <button type="button" data-gran="day" class="gran-btn px-2.5 py-1 rounded-lg font-semibold bg-[var(--bg-surface)] shadow-xs">Harian</button>
+                <button type="button" data-gran="week" class="gran-btn px-2.5 py-1 rounded-lg font-medium muted-text">Mingguan</button>
+                <button type="button" data-gran="month" class="gran-btn px-2.5 py-1 rounded-lg font-medium muted-text">Bulanan</button>
+              </div>
+            </div>
+          </div>
+          <div class="relative h-64 sm:h-76">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Commission Status Breakdown (Original Labels + Mapping) & Peak Hours -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-6 card-surface rounded-3xl p-5 sm:p-6 flex flex-col justify-between">
+            <div>
+              <h2 class="text-base font-bold">Rincian Status Pembayaran Asli</h2>
+              <p class="text-xs muted-text mt-0.5">Menampilkan label status asli dari file beserta kategori grupnya</p>
+            </div>
+            <div class="relative h-52 my-4">
+              <canvas id="statusChart"></canvas>
+            </div>
+            <div class="overflow-x-auto scrollbar-thin">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-[var(--border-hairline)] text-[10px] uppercase tracking-wider muted-text">
+                    <th class="py-2 pr-2">Status Asli (Grup)</th>
+                    <th class="py-2 px-2 text-right">Pesanan</th>
+                    <th class="py-2 px-2 text-right">Unit</th>
+                    <th class="py-2 pl-2 text-right">Nilai Komisi</th>
+                  </tr>
+                </thead>
+                <tbody id="statusTableBody" class="divide-y divide-[var(--border-hairline)]"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 card-surface rounded-3xl p-5 sm:p-6 flex flex-col justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+              <div>
+                <h2 class="text-base font-bold">Pola Waktu Pembelian</h2>
+                <p class="text-xs muted-text mt-0.5">Distribusi unit terjual per jam &amp; hari dalam seminggu</p>
+              </div>
+              <div class="inline-flex rounded-xl subtle-box p-0.5 text-xs self-start">
+                <button type="button" data-timemode="hour" class="time-btn px-3 py-1 rounded-lg font-semibold bg-[var(--bg-surface)] shadow-xs">Per Jam</button>
+                <button type="button" data-timemode="weekday" class="time-btn px-3 py-1 rounded-lg font-medium muted-text">Per Hari</button>
+              </div>
+            </div>
+            <div class="relative h-64">
+              <canvas id="timePatternChart"></canvas>
+            </div>
+            <div class="mt-4 pt-3 border-t border-[var(--border-hairline)] flex items-center justify-between text-xs">
+              <span class="muted-text">Puncak Checkout</span>
+              <span id="peakTimeBadge" class="font-bold">-</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: PRODUK, TOKO & KONTEN -->
+      <section id="tab-products" class="tab-panel hidden animate-panel space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-7 card-surface rounded-3xl p-5 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div>
+                <h2 class="text-base font-bold">Top 10 Produk</h2>
+                <p class="text-xs muted-text mt-0.5">Urutkan berdasarkan unit, komisi cair, komisi valid, atau GMV</p>
+              </div>
+              <select id="productChartMetric" aria-label="Urutan top produk" class="h-9 rounded-xl subtle-box px-3 text-xs font-semibold focus:outline-none">
+                <option value="units">Unit Terjual</option>
+                <option value="paidComm">Komisi Dibayar</option>
+                <option value="validComm">Total Komisi Valid</option>
+                <option value="gmv">GMV</option>
+              </select>
+            </div>
+            <div class="relative h-76">
+              <canvas id="topProductsChart"></canvas>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 card-surface rounded-3xl p-5 sm:p-6 flex flex-col justify-between">
+            <div>
+              <h2 class="text-base font-bold">Kontribusi Format Konten</h2>
+              <p class="text-xs muted-text mt-0.5 mb-4">Video vs Berbagi Tautan vs Showcase (berdasarkan unit)</p>
+              <div class="relative h-56">
+                <canvas id="contentTypeChart"></canvas>
+              </div>
+            </div>
+            <div id="directVsIndirectBox" class="mt-4 pt-3 border-t border-[var(--border-hairline)] text-xs muted-text"></div>
+          </div>
+        </div>
+
+        <!-- Full Product Table -->
+        <div class="card-surface rounded-3xl p-5 sm:p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 class="text-base font-bold">Performa Semua Produk</h2>
+              <p id="productCountLabel" class="text-xs muted-text">Klik baris produk untuk melihat detail transaksi</p>
+            </div>
+            <div class="relative w-full sm:w-72">
+              <i data-lucide="search" class="w-4 h-4 subtle-text absolute left-3 top-1/2 -translate-y-1/2"></i>
+              <input id="productSearch" type="text" placeholder="Cari produk atau toko..." class="w-full h-10 sm:h-9 pl-9 pr-3 rounded-xl subtle-box text-xs sm:text-sm focus:outline-none" />
+            </div>
+          </div>
+          <div class="overflow-x-auto scrollbar-thin -mx-2 px-2">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm min-w-[700px]">
+              <thead>
+                <tr class="border-b border-[var(--border-hairline)] text-[10px] uppercase tracking-wider muted-text">
+                  <th class="py-2.5 pr-3">Produk &amp; Toko</th>
+                  <th class="py-2.5 px-2 text-right">Rate</th>
+                  <th class="py-2.5 px-2 text-right">Pesanan</th>
+                  <th class="py-2.5 px-2 text-right">Unit</th>
+                  <th class="py-2.5 px-2 text-right">Refund</th>
+                  <th class="py-2.5 px-2 text-right">GMV</th>
+                  <th class="py-2.5 px-2 text-right">Komisi Cair</th>
+                  <th class="py-2.5 px-2 text-right">Pending</th>
+                  <th class="py-2.5 pl-2 text-right">Sukses</th>
+                </tr>
+              </thead>
+              <tbody id="productTableBody" class="divide-y divide-[var(--border-hairline)]"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Store & Content ID Tables -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-6 card-surface rounded-3xl p-5 sm:p-6">
+            <h2 class="text-base font-bold">Peringkat Toko</h2>
+            <p class="text-xs muted-text mt-0.5 mb-4">Klik nama toko untuk melihat detail atau memfilter</p>
+            <div class="overflow-x-auto scrollbar-thin -mx-2 px-2">
+              <table class="w-full text-left border-collapse text-xs min-w-[460px]">
+                <thead>
+                  <tr class="border-b border-[var(--border-hairline)] text-[10px] uppercase tracking-wider muted-text">
+                    <th class="py-2 pr-2">Toko</th>
+                    <th class="py-2 px-2 text-right">Unit</th>
+                    <th class="py-2 px-2 text-right">GMV</th>
+                    <th class="py-2 px-2 text-right">Komisi Cair</th>
+                    <th class="py-2 pl-2 text-right">Batal</th>
+                  </tr>
+                </thead>
+                <tbody id="shopTableBody" class="divide-y divide-[var(--border-hairline)]"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 card-surface rounded-3xl p-5 sm:p-6">
+            <h2 class="text-base font-bold">Performa per ID Konten</h2>
+            <p class="text-xs muted-text mt-0.5 mb-4">Klik ID konten untuk melihat produk yang terjual darinya</p>
+            <div class="overflow-x-auto scrollbar-thin -mx-2 px-2">
+              <table class="w-full text-left border-collapse text-xs min-w-[460px]">
+                <thead>
+                  <tr class="border-b border-[var(--border-hairline)] text-[10px] uppercase tracking-wider muted-text">
+                    <th class="py-2 pr-2">ID Konten</th>
+                    <th class="py-2 px-2">Tipe</th>
+                    <th class="py-2 px-2 text-right">Unit</th>
+                    <th class="py-2 px-2 text-right">Komisi Cair</th>
+                    <th class="py-2 pl-2 text-right">Pending</th>
+                  </tr>
+                </thead>
+                <tbody id="contentTableBody" class="divide-y divide-[var(--border-hairline)]"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: BUSINESS INSIGHTS & RECOMMENDATIONS (LOCAL ENGINE) -->
+      <section id="tab-insights" class="tab-panel hidden animate-panel space-y-5">
+        <!-- Executive Summary Banner -->
+        <div class="bg-[#111214] dark:bg-[#1A1D24] text-white rounded-3xl p-5 sm:p-6 shadow-elevated border border-white/10">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/25 text-emerald-300 text-[11px] font-semibold">
+              <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+              <span>Analisis Otomatis &amp; Rekomendasi (Mesin Lokal — Tanpa API)</span>
+            </span>
+            <span id="insightsScopeBadge" class="num text-[11px] text-white/60">-</span>
+          </div>
+          <h2 class="text-lg sm:text-xl font-bold">Ringkasan Eksekutif Bisnis Affiliate</h2>
+          <div id="execSummaryGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3.5 mt-4 text-xs sm:text-sm text-white/85"></div>
+        </div>
+
+        <!-- Prioritized Recommendations -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h3 class="text-base font-bold">Rekomendasi Berbasis Bukti</h3>
+              <p class="text-xs muted-text">Setiap rekomendasi dihitung dari data Anda dan dapat dibuka untuk melihat bukti serta perhitungannya</p>
+            </div>
+          </div>
+          <div id="recommendationsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- Content Promotion Opportunities -->
+        <div class="card-surface rounded-3xl p-5 sm:p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+              <h3 class="text-base font-bold">Peluang Promosi Konten (Content Promotion Opportunities)</h3>
+              <p class="text-xs muted-text mt-0.5">Konten dengan performa kuat berdasarkan unit, GMV, komisi, dan konsistensi tanggal</p>
+            </div>
+          </div>
+          <div id="contentOppsList" class="grid grid-cols-1 md:grid-cols-3 gap-3.5"></div>
+          <p class="mt-4 pt-3 border-t border-[var(--border-hairline)] text-[11px] muted-text leading-relaxed">
+            <strong>Catatan Evaluasi Iklan:</strong> Laporan affiliate umumnya tidak memuat biaya iklan, views, CTR, atau ROAS. Jika mempertimbangkan promosi berbayar untuk konten berkinerja tinggi di atas, evaluasi terlebih dahulu margin komisi terhadap biaya iklan di dashboard iklan Anda.
+          </p>
+        </div>
+
+        <!-- Practical Action Plan & Forecasting -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-7 card-surface rounded-3xl p-5 sm:p-6">
+            <h3 class="text-base font-bold">Rencana Aksi Praktis</h3>
+            <p class="text-xs muted-text mt-0.5 mb-4">Disusun otomatis dari temuan utama pada laporan Anda</p>
+            <div id="actionPlanList" class="space-y-3"></div>
+          </div>
+
+          <div class="lg:col-span-5 card-surface rounded-3xl p-5 sm:p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <h3 class="text-base font-bold">Estimasi Proyeksi 7 Hari</h3>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400">Estimasi</span>
+              </div>
+              <p class="text-xs muted-text mb-4">Bukan jaminan — berbasis rata-rata harian &amp; tren historis</p>
+              <div id="forecastBox" class="space-y-3"></div>
+            </div>
+            <p id="forecastMethodNote" class="mt-4 pt-3 border-t border-[var(--border-hairline)] text-[11px] muted-text leading-relaxed"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: DATA PESANAN LENGKAP -->
+      <section id="tab-orders" class="tab-panel hidden animate-panel space-y-4">
+        <div class="card-surface rounded-3xl p-5 sm:p-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 class="text-base font-bold">Eksplorasi Data Pesanan</h2>
+              <p id="orderCountLabel" class="text-xs muted-text">0 baris</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="relative flex-1 sm:w-64">
+                <i data-lucide="search" class="w-4 h-4 subtle-text absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input id="orderSearch" type="text" placeholder="Cari ID pesanan, SKU, produk..." class="w-full h-10 sm:h-9 pl-9 pr-3 rounded-xl subtle-box text-xs sm:text-sm focus:outline-none" />
+              </div>
+              <select id="orderSort" aria-label="Urutkan pesanan" class="h-10 sm:h-9 rounded-xl subtle-box px-2.5 text-xs font-semibold focus:outline-none">
+                <option value="date_desc">Terbaru</option>
+                <option value="date_asc">Terlama</option>
+                <option value="comm_desc">Komisi Tertinggi</option>
+                <option value="gmv_desc">GMV Tertinggi</option>
+                <option value="units_desc">Unit Terbanyak</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto scrollbar-thin -mx-2 px-2">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm min-w-[680px]">
+              <thead>
+                <tr class="border-b border-[var(--border-hairline)] text-[10px] uppercase tracking-wider muted-text">
+                  <th class="py-2.5 pr-3">Waktu &amp; ID Pesanan</th>
+                  <th class="py-2.5 px-2">Produk &amp; Toko</th>
+                  <th class="py-2.5 px-2">Status Asli</th>
+                  <th class="py-2.5 px-2 text-right">Unit</th>
+                  <th class="py-2.5 px-2 text-right">GMV</th>
+                  <th class="py-2.5 px-2 text-right">Aktual Cair</th>
+                  <th class="py-2.5 pl-2 text-right">Detail</th>
+                </tr>
+              </thead>
+              <tbody id="orderTableBody" class="divide-y divide-[var(--border-hairline)]"></tbody>
+            </table>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-[var(--border-hairline)] flex items-center justify-between gap-3 text-xs muted-text">
+            <span id="paginationInfo">Halaman 1 / 1</span>
+            <div class="flex items-center gap-2">
+              <button id="btnPrevPage" type="button" class="h-9 px-3.5 rounded-xl card-surface font-semibold disabled:opacity-40">Prev</button>
+              <button id="btnNextPage" type="button" class="h-9 px-3.5 rounded-xl card-surface font-semibold disabled:opacity-40">Next</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- TAB 5: RADAR PROMO & KAMPANYE E-COMMERCE INDONESIA    -->
+    <!-- (Accessible both before and after upload!)            -->
+    <!-- ===================================================== -->
+    <section id="tab-radar" class="tab-panel hidden animate-panel space-y-5">
+      <div class="bg-[#111214] dark:bg-[#1A1D24] text-white rounded-3xl p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-elevated border border-white/10">
+        <div>
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/25 text-emerald-300 text-[11px] font-semibold">
+            <span class="relative w-2 h-2 rounded-full bg-emerald-400 live-ring"></span>
+            <span>Intelijen Kampanye E-Commerce Indonesia</span>
+          </div>
+          <h2 class="text-lg sm:text-xl font-bold mt-2.5">Kalender Promo Mendatang &amp; Hari Libur Nasional</h2>
+          <p class="text-xs sm:text-sm text-white/65 mt-1">Dihitung otomatis dari tanggal saat ini. Membedakan secara tegas antara <strong>Terkonfirmasi Resmi</strong> dan <strong>Perkiraan Berdasarkan Pola Tahunan</strong>.</p>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 shrink-0">
+          <p class="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Waktu Saat Ini &amp; Pembaruan</p>
+          <p id="radarLiveClock" class="num text-sm sm:text-base font-bold text-white mt-0.5">--:--:--</p>
+          <p id="radarApiStatus" class="text-[11px] text-emerald-300 mt-0.5">Menghubungkan API Hari Libur...</p>
+        </div>
+      </div>
+
+      <!-- Upcoming Campaigns Grid -->
+      <div id="radarPromoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+      <!-- Live National Holidays + API Transparency -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-6 card-surface rounded-3xl p-5 sm:p-6">
+          <div class="flex items-center justify-between gap-2 mb-4">
+            <div>
+              <h3 class="text-base font-bold">Hari Libur Nasional Indonesia</h3>
+              <p id="holidaySourceText" class="text-xs muted-text">Sumber: Nager.Date Public API (Gratis)</p>
+            </div>
+            <button id="btnRefreshHolidays" type="button" class="h-8 px-3 rounded-lg card-surface text-xs font-semibold hover:opacity-85 transition">Segarkan</button>
+          </div>
+          <div id="holidayList" class="space-y-2.5"></div>
+        </div>
+
+        <div class="lg:col-span-6 card-surface rounded-3xl p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <h3 class="text-base font-bold">Transparansi Sumber Data &amp; Biaya API</h3>
+            <p class="text-xs muted-text mt-0.5 mb-4">Aplikasi ini dirancang 100% dapat digunakan tanpa biaya berlangganan</p>
+            <div class="space-y-2.5 text-xs">
+              <div class="p-3.5 rounded-2xl subtle-box">
+                <p class="font-bold text-emerald-700 dark:text-emerald-400">1. Analisis File &amp; Business Insights — Gratis &amp; Offline</p>
+                <p class="muted-text mt-0.5 leading-relaxed">Seluruh parsing Excel/CSV, kalkulasi komisi, grafik, dan mesin rekomendasi berjalan lokal di browser tanpa API key dan tanpa mengirim data keluar.</p>
+              </div>
+              <div class="p-3.5 rounded-2xl subtle-box">
+                <p class="font-bold text-sky-700 dark:text-sky-400">2. Hari Libur Nasional (Nager.Date API) — Gratis</p>
+                <p class="muted-text mt-0.5 leading-relaxed">Endpoint publik <span class="num">date.nager.at</span> gratis tanpa registrasi &amp; tanpa kartu kredit. Jika offline, otomatis beralih ke kalender cadangan lokal.</p>
+              </div>
+              <div class="p-3.5 rounded-2xl subtle-box">
+                <p class="font-bold text-amber-700 dark:text-amber-400">3. Kalender Promo E-Commerce — Perkiraan Pola Tahunan</p>
+                <p class="muted-text mt-0.5 leading-relaxed">Gajian tgl 25 &amp; Tanggal Kembar (1.1–12.12) diberi label <em>Perkiraan Berdasarkan Pola Tahunan</em> sampai ada pengumuman resmi di situs marketplace.</p>
+              </div>
+            </div>
+          </div>
+          <p id="radarLastUpdated" class="mt-4 pt-3 border-t border-[var(--border-hairline)] text-[11px] muted-text">Terakhir diperbarui: -</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar (Android Friendly) -->
+  <nav aria-label="Navigasi Mobile" class="lg:hidden fixed bottom-0 inset-x-0 z-40 backdrop-blur-md border-t border-[var(--border-hairline)] safe-bottom" style="background-color: color-mix(in srgb, var(--bg-surface) 95%, transparent);">
+    <div class="grid grid-cols-5 h-14">
+      <button type="button" class="mobile-tab flex flex-col items-center justify-center gap-0.5 relative" data-tab="overview" aria-selected="true">
+        <span class="mob-indicator absolute top-0 w-7 h-0.5 rounded-full bg-[var(--text-ink)]"></span>
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        <span class="text-[10px] font-semibold">Ringkasan</span>
+      </button>
+      <button type="button" class="mobile-tab flex flex-col items-center justify-center gap-0.5 relative" data-tab="products" aria-selected="false">
+        <span class="mob-indicator absolute top-0 w-7 h-0.5 rounded-full bg-[var(--text-ink)]"></span>
+        <i data-lucide="package" class="w-4 h-4"></i>
+        <span class="text-[10px] font-semibold">Produk</span>
+      </button>
+      <button type="button" class="mobile-tab flex flex-col items-center justify-center gap-0.5 relative" data-tab="insights" aria-selected="false">
+        <span class="mob-indicator absolute top-0 w-7 h-0.5 rounded-full bg-[var(--text-ink)]"></span>
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+        <span class="text-[10px] font-semibold">Insights</span>
+      </button>
+      <button type="button" class="mobile-tab flex flex-col items-center justify-center gap-0.5 relative" data-tab="orders" aria-selected="false">
+        <span class="mob-indicator absolute top-0 w-7 h-0.5 rounded-full bg-[var(--text-ink)]"></span>
+        <i data-lucide="receipt" class="w-4 h-4"></i>
+        <span class="text-[10px] font-semibold">Pesanan</span>
+      </button>
+      <button type="button" class="mobile-tab flex flex-col items-center justify-center gap-0.5 relative" data-tab="radar" aria-selected="false">
+        <span class="mob-indicator absolute top-0 w-7 h-0.5 rounded-full bg-[var(--text-ink)]"></span>
+        <i data-lucide="radar" class="w-4 h-4"></i>
+        <span class="text-[10px] font-semibold">Promo</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MODAL: Reset Data Analisis Confirmation -->
+  <div id="resetModal" class="fixed inset-0 z-[70] hidden items-end sm:items-center justify-center bg-[#111214]/55 backdrop-blur-xs p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle">
+    <div class="card-surface rounded-t-3xl sm:rounded-3xl shadow-elevated max-w-md w-full p-6 animate-rise">
+      <div class="w-11 h-11 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center mb-4">
+        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+      </div>
+      <h3 id="resetModalTitle" class="text-base font-bold">Reset Data Analisis?</h3>
+      <p class="text-xs sm:text-sm muted-text mt-1.5 leading-relaxed">
+        Tindakan ini akan menghapus file laporan yang sedang aktif beserta seluruh metrik, grafik, filter, pilihan produk/toko, proyeksi, rekomendasi, dan salinan tersimpan di browser. Dashboard akan kembali ke keadaan kosong (preferensi tema tetap terjaga).
+      </p>
+      <div class="flex items-center gap-2.5 mt-6">
+        <button id="btnCancelReset" type="button" class="flex-1 h-11 rounded-xl card-surface text-xs font-bold hover:opacity-85 transition">Batal</button>
+        <button id="btnConfirmReset" type="button" class="flex-1 h-11 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition">Ya, Reset Data</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Column Mapping & Data Quality Audit -->
+  <div id="mappingModal" class="fixed inset-0 z-[65] hidden items-end sm:items-center justify-center bg-[#111214]/55 backdrop-blur-xs p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="mappingModalTitle">
+    <div class="card-surface rounded-t-3xl sm:rounded-3xl shadow-elevated max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-rise">
+      <div class="px-5 py-4 border-b border-[var(--border-hairline)] flex items-center justify-between">
+        <div>
+          <h3 id="mappingModalTitle" class="text-base font-bold">Pemetaan Kolom &amp; Audit Kualitas Data</h3>
+          <p class="text-xs muted-text mt-0.5">Sesuaikan pemetaan kolom secara manual jika struktur laporan Anda berbeda</p>
+        </div>
+        <button id="btnCloseMapping" type="button" class="w-9 h-9 rounded-xl subtle-box flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="p-5 overflow-y-auto scrollbar-thin space-y-5">
+        <!-- Quality Summary -->
+        <div id="qualityAuditBox" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs"></div>
+        <div id="dedupNoteBox" class="p-3.5 rounded-2xl subtle-box text-xs muted-text leading-relaxed"></div>
+        <!-- Manual Mapping Form -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider muted-text mb-3">Pemetaan Kolom Aktif</h4>
+          <div id="mappingFieldsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs"></div>
+        </div>
+      </div>
+      <div class="px-5 py-3.5 border-t border-[var(--border-hairline)] flex items-center justify-end gap-2">
+        <button id="btnCancelMapping" type="button" class="h-10 px-4 rounded-xl card-surface text-xs font-bold">Tutup</button>
+        <button id="btnApplyMapping" type="button" class="h-10 px-4 rounded-xl bg-[#111214] dark:bg-white text-white dark:text-[#111214] text-xs font-bold">Terapkan Pemetaan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Export Options (Excel, CSV, PDF) -->
+  <div id="exportModal" class="fixed inset-0 z-[65] hidden items-end sm:items-center justify-center bg-[#111214]/55 backdrop-blur-xs p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
+    <div class="card-surface rounded-t-3xl sm:rounded-3xl shadow-elevated max-w-md w-full p-6 animate-rise">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 id="exportModalTitle" class="text-base font-bold">Export Laporan Analisis</h3>
+          <p id="exportScopeText" class="text-xs muted-text mt-0.5">Mengikuti filter aktif saat ini</p>
+        </div>
+        <button id="btnCloseExport" type="button" class="w-9 h-9 rounded-xl subtle-box flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="space-y-2.5">
+        <button id="btnDoExportXlsx" type="button" class="w-full p-3.5 rounded-2xl subtle-box hover:border-emerald-500 text-left flex items-center gap-3 transition">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0"><i data-lucide="file-spreadsheet" class="w-5 h-5"></i></div>
+          <div>
+            <p class="text-xs sm:text-sm font-bold">Export Workbook Excel (.xlsx)</p>
+            <p class="text-[11px] muted-text">Multi-sheet: Ringkasan, Produk, Toko, Status Komisi, Insights &amp; Data Terfilter</p>
+          </div>
+        </button>
+        <button id="btnDoExportCsv" type="button" class="w-full p-3.5 rounded-2xl subtle-box hover:border-sky-500 text-left flex items-center gap-3 transition">
+          <div class="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-700 dark:text-sky-400 flex items-center justify-center shrink-0"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+          <div>
+            <p class="text-xs sm:text-sm font-bold">Export Ringkasan Produk (.csv)</p>
+            <p class="text-[11px] muted-text">Format ringan UTF-8 dengan periode tanggal dan definisi metrik</p>
+          </div>
+        </button>
+        <button id="btnDoExportPdf" type="button" class="w-full p-3.5 rounded-2xl subtle-box hover:border-amber-500 text-left flex items-center gap-3 transition">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0"><i data-lucide="printer" class="w-5 h-5"></i></div>
+          <div>
+            <p class="text-xs sm:text-sm font-bold">Cetak / Simpan sebagai PDF</p>
+            <p class="text-[11px] muted-text">Buka dialog cetak browser (Save as PDF) dengan layout laporan rapi</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Mobile Filter Sheet -->
+  <div id="mobileFilterModal" class="fixed inset-0 z-[65] hidden items-end justify-center bg-[#111214]/55 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="mobileFilterTitle">
+    <div class="card-surface rounded-t-3xl shadow-elevated w-full max-w-lg p-5 space-y-4 animate-rise safe-bottom">
+      <div class="flex items-center justify-between">
+        <h3 id="mobileFilterTitle" class="text-base font-bold">Filter Analisis</h3>
+        <button id="btnCloseFilterSheet" type="button" class="w-9 h-9 rounded-xl subtle-box flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="mFilterDateFrom" class="block text-[11px] font-semibold muted-text mb-1">Dari Tanggal</label>
+          <input id="mFilterDateFrom" type="date" class="w-full h-11 rounded-xl subtle-box px-3 text-xs font-medium" />
+        </div>
+        <div>
+          <label for="mFilterDateTo" class="block text-[11px] font-semibold muted-text mb-1">Sampai Tanggal</label>
+          <input id="mFilterDateTo" type="date" class="w-full h-11 rounded-xl subtle-box px-3 text-xs font-medium" />
+        </div>
+      </div>
+      <div>
+        <label for="mFilterStatus" class="block text-[11px] font-semibold muted-text mb-1">Status Pembayaran</label>
+        <select id="mFilterStatus" class="w-full h-11 rounded-xl subtle-box px-3 text-xs font-medium"></select>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="mFilterShop" class="block text-[11px] font-semibold muted-text mb-1">Toko</label>
+          <select id="mFilterShop" class="w-full h-11 rounded-xl subtle-box px-3 text-xs font-medium"></select>
+        </div>
+        <div>
+          <label for="mFilterContentType" class="block text-[11px] font-semibold muted-text mb-1">Jenis Konten</label>
+          <select id="mFilterContentType" class="w-full h-11 rounded-xl subtle-box px-3 text-xs font-medium"></select>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 pt-2">
+        <button id="btnMobileSheetReset" type="button" class="flex-1 h-11 rounded-xl card-surface text-xs font-bold">Reset</button>
+        <button id="btnMobileSheetApply" type="button" class="flex-[2] h-11 rounded-xl bg-[#111214] dark:bg-white text-white dark:text-[#111214] text-xs font-bold">Terapkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Drilldown Detail (Order / Product / Store / Content / Evidence) -->
+  <div id="detailModal" class="fixed inset-0 z-[65] hidden items-end sm:items-center justify-center bg-[#111214]/55 backdrop-blur-xs p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="card-surface rounded-t-3xl sm:rounded-3xl shadow-elevated max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-rise">
+      <div class="px-5 py-4 border-b border-[var(--border-hairline)] flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <h3 id="modalTitle" class="text-base font-bold truncate">Detail</h3>
+          <p id="modalSubtitle" class="text-xs muted-text mt-0.5 truncate">-</p>
+        </div>
+        <button id="btnCloseModal" type="button" class="w-9 h-9 rounded-xl subtle-box flex items-center justify-center shrink-0"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div id="modalBody" class="p-5 overflow-y-auto scrollbar-thin space-y-3 text-xs sm:text-sm"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_THEME_KEY = 'affilitrack_theme_v2';
+      const STORAGE_REMEMBER_KEY = 'affilitrack_remember_optin_v2';
+      const STORAGE_LAST_REPORT_KEY = 'affilitrack_last_report_v2';
+
+      const SCHEMA_FIELDS = [
+        { key: 'orderId', label: 'ID Pesanan', aliases: ['ID pesanan', 'Order ID', 'No. Pesanan', 'Kode Pesanan'] },
+        { key: 'skuId', label: 'ID SKU', aliases: ['ID SKU', 'SKU ID'] },
+        { key: 'productName', label: 'Nama Produk', aliases: ['Nama produk', 'Product Name', 'Produk'] },
+        { key: 'productId', label: 'ID Produk', aliases: ['ID produk', 'Product ID'] },
+        { key: 'price', label: 'Harga Satuan', aliases: ['Harga', 'Price'] },
+        { key: 'units', label: 'Unit Terjual', aliases: ['Produk terjual', 'Quantity', 'Qty', 'Jumlah', 'Unit terjual'] },
+        { key: 'refunds', label: 'Unit Refund', aliases: ['Produk yang dikembalikan dananya', 'Refunded Quantity', 'Jumlah pengembalian'] },
+        { key: 'shopName', label: 'Nama Toko', aliases: ['Nama toko', 'Shop Name', 'Toko'] },
+        { key: 'currency', label: 'Mata Uang', aliases: ['Mata uang', 'Currency'] },
+        { key: 'status', label: 'Status Pembayaran', aliases: ['Status penyelesaian pembayaran pesanan', 'Order Settlement Status', 'Status pesanan', 'Status'] },
+        { key: 'indirect', label: 'Pesanan Tidak Langsung', aliases: ['Tidak Langsung', 'Indirect'] },
+        { key: 'contentType', label: 'Jenis Konten', aliases: ['Jenis Konten', 'Content Type'] },
+        { key: 'contentId', label: 'ID Konten', aliases: ['ID Konten', 'Content ID'] },
+        { key: 'rateStd', label: 'Rate Komisi Standar', aliases: ['Standar', 'Standard Commission Rate', 'Rate Komisi'] },
+        { key: 'gmv', label: 'GMV', aliases: ['GMV', 'Total Pembayaran', 'Nilai Pesanan'] },
+        { key: 'estStd', label: 'Est. Komisi Standar', aliases: ['Perkiraan komisi standar', 'Est. Standard Commission', 'Estimasi komisi'] },
+        { key: 'estShopAds', label: 'Est. Komisi Iklan Toko', aliases: ['Perkiraan komisi Iklan Toko', 'Est. Shop Ads Commission'] },
+        { key: 'estBonus', label: 'Est. Bonus', aliases: ['Perkiraan Bonus', 'Est. Bonus'] },
+        { key: 'estPartnerBonus', label: 'Est. Bonus Mitra', aliases: ['Perkiraan Bonus mitra afiliasi', 'Est. Partner Bonus'] },
+        { key: 'actStd', label: 'Komisi Standar Aktual', aliases: ['Komisi standar', 'Actual Standard Commission'] },
+        { key: 'actShopAds', label: 'Komisi Iklan Toko Aktual', aliases: ['Komisi Iklan Toko', 'Actual Shop Ads Commission'] },
+        { key: 'actBonus', label: 'Bonus Aktual', aliases: ['Bonus', 'Actual Bonus'] },
+        { key: 'actPartnerBonus', label: 'Bonus Mitra Aktual', aliases: ['Bonus mitra afiliasi'] },
+        { key: 'taxIsr', label: 'Pajak ISR', aliases: ['Pajak - ISR', 'ISR'] },
+        { key: 'taxIva', label: 'Pajak IVA', aliases: ['Pajak - IVA', 'IVA'] },
+        { key: 'taxCedular', label: 'Cedular Tax', aliases: ['cedular_tax', 'CedularTax'] },
+        { key: 'taxPit', label: 'Pajak PIT', aliases: ['Pajak - PIT', 'PIT'] },
+        { key: 'partnerShare', label: 'Dibagikan ke Mitra', aliases: ['Dibagikan kepada mitra', 'Partner Share'] },
+        { key: 'totalFinal', label: 'Total Penghasilan Akhir', aliases: ['Total penghasilan akhir', 'Total Final Earned Amount'] },
+        { key: 'orderDate', label: 'Tanggal Pesanan', aliases: ['Tanggal pesanan', 'Order Time', 'Order Created Time', 'Waktu pesanan'] },
+        { key: 'settleDate', label: 'Tanggal Pencairan', aliases: ['Tanggal penyelesaian pembayaran komisi', 'Commission Settlement Time', 'Waktu penyelesaian'] },
+      ];
+
+      const STATUS_META = {
+        PAID: { label: 'Sudah dibayar', color: '#059669', badge: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/25' },
+        PROCESSING: { label: 'Dalam proses', color: '#0284c7', badge: 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/25' },
+        UNPAID: { label: 'Belum dibayar', color: '#d97706', badge: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/25' },
+        INELIGIBLE: { label: 'Tidak memenuhi syarat', color: '#e11d48', badge: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/25' },
+      };
+
+      const state = {
+        hasData: false,
+        fileName: '',
+        rawHeaders: [],
+        rawMatrix: [],
+        colMap: {},
+        quality: null,
+        records: [],
+        filteredRecords: [],
+        activeTab: 'overview',
+        filters: { dateFrom: '', dateTo: '', status: 'ALL', shop: 'ALL', contentType: 'ALL', preset: 'ALL' },
+        trendMetric: 'commission',
+        trendGranularity: 'day',
+        timePatternMode: 'hour',
+        productChartMetric: 'units',
+        productSearch: '',
+        orderSearch: '',
+        orderSort: 'date_desc',
+        orderPage: 1,
+        orderPageSize: 18,
+        charts: {},
+        animFrames: {},
+        recommendations: [],
+        holidays: [],
+        promoEvents: [],
+        clockInterval: null,
+      };
+
+      // --- Utilities ---
+      function parseIdNumber(val) {
+        if (val === null || val === undefined) return null;
+        if (typeof val === 'number') return Number.isFinite(val) ? val : null;
+        let s = String(val).trim();
+        if (!s || s === '/' || s === '-') return null;
+        s = s.replace(/[RpIDR\s%]/gi, '');
+        if (!s) return null;
+        if (s.includes(',') && s.includes('.')) {
+          s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+        } else if (s.includes(',')) {
+          const p = s.split(',');
+          s = (p.length > 1 && p.slice(1).every(x => x.length === 3)) ? p.join('') : s.replace(',', '.');
+        } else if (s.includes('.')) {
+          const p = s.split('.');
+          if (p.length > 1 && p.slice(1).every(x => x.length === 3)) s = p.join('');
+        }
+        const n = parseFloat(s);
+        return Number.isFinite(n) ? n : null;
+      }
+
+      function parseDateValue(val) {
+        if (!val) return null;
+        if (val instanceof Date && !isNaN(val.getTime())) return val;
+        if (typeof val === 'number' && val > 25000 && val < 80000) {
+          const utcDays = Math.floor(val - 25569);
+          const frac = val - Math.floor(val);
+          return new Date((utcDays * 86400 + Math.round(frac * 86400)) * 1000);
+        }
+        const s = String(val).trim();
+        if (!s || s === '/' || s === '-') return null;
+        let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:[\sT]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+        if (m) return new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+        m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:[\sT]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+        if (m) return new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? null : d;
+      }
+
+      function toIsoDate(d) {
+        if (!d) return '';
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
+      function formatDateDisplay(d) {
+        if (!d) return '-';
+        return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+      }
+      function formatLongDateId(d) {
+        if (!d) return '-';
+        const m = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        return `${d.getDate()} ${m[d.getMonth()]} ${d.getFullYear()}`;
+      }
+      function formatDateTimeDisplay(d) {
+        if (!d) return '-';
+        return `${formatDateDisplay(d)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      }
+      function formatIDR(n) { return 'Rp ' + Math.round(n || 0).toLocaleString('id-ID'); }
+      function formatCompactIDR(n) {
+        const a = Math.abs(n || 0);
+        if (a >= 1e9) return 'Rp ' + (n / 1e9).toFixed(1).replace('.', ',') + 'M';
+        if (a >= 1e6) return 'Rp ' + (n / 1e6).toFixed(1).replace('.', ',') + 'jt';
+        if (a >= 1e3) return 'Rp ' + Math.round(n / 1e3) + 'rb';
+        return 'Rp ' + Math.round(n || 0);
+      }
+      function formatNum(n) { return Math.round(n || 0).toLocaleString('id-ID'); }
+      function escapeHtml(str) {
+        return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      function normalizeStatus(raw) {
+        const s = String(raw || '').trim().toLowerCase();
+        if (!s) return 'PROCESSING';
+        if (s.includes('sudah dibayar') || s === 'settled' || s === 'completed' || s === 'paid' || s.includes('selesai')) return 'PAID';
+        if (s.includes('dalam proses') || s === 'pending' || s === 'processing' || s.includes('diproses')) return 'PROCESSING';
+        if (s.includes('awaiting') || s.includes('belum dibayar') || s.includes('menunggu') || s === 'unpaid') return 'UNPAID';
+        if (s.includes('tidak memenuhi') || s.includes('ineligible') || s.includes('cancel') || s.includes('batal') || s.includes('refund')) return 'INELIGIBLE';
+        return 'PROCESSING';
+      }
+
+      function showToast(msg, type = 'info') {
+        const c = document.getElementById('toastContainer');
+        const border = type === 'success' ? 'border-emerald-400' : type === 'error' ? 'border-rose-400' : 'border-white/50';
+        const el = document.createElement('div');
+        el.className = `pointer-events-auto px-4 py-3 rounded-2xl bg-[#111214] text-white shadow-elevated text-xs font-medium border-l-4 ${border} animate-rise`;
+        el.textContent = msg;
+        c.appendChild(el);
+        setTimeout(() => { el.classList.add('opacity-0'); setTimeout(() => el.remove(), 250); }, 3400);
+      }
+
+      function animateCounter(elId, target, fmt) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        if (state.animFrames[elId]) cancelAnimationFrame(state.animFrames[elId]);
+        const start = Number(el.dataset.val || 0);
+        el.dataset.val = String(target);
+        const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReduced) { el.textContent = fmt(target); return; }
+        const t0 = performance.now();
+        function tick(now) {
+          const p = Math.min(1, (now - t0) / 480);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = fmt(start + (target - start) * eased);
+          if (p < 1) state.animFrames[elId] = requestAnimationFrame(tick);
+          else el.textContent = fmt(target);
+        }
+        state.animFrames[elId] = requestAnimationFrame(tick);
+      }
+
+      // --- Dynamic Column Detection & Composite Deduplication ---
+      function detectColumns(headers) {
+        const norm = headers.map(h => String(h || '').trim().toLowerCase());
+        const map = {};
+        for (const f of SCHEMA_FIELDS) {
+          let found = -1;
+          for (const a of f.aliases) {
+            const idx = norm.indexOf(a.toLowerCase());
+            if (idx !== -1) { found = idx; break; }
+          }
+          if (found === -1) {
+            for (const a of f.aliases) {
+              const idx = norm.findIndex(h => h && h.includes(a.toLowerCase()));
+              if (idx !== -1) { found = idx; break; }
+            }
+          }
+          map[f.key] = found;
+        }
+        return map;
+      }
+
+      function processMatrixWithMap(headers, matrix, colMap) {
+        const seenComposite = new Set();
+        const records = [];
+        let emptyRows = 0, exactDuplicates = 0, invalidDates = 0, missingStatus = 0;
+
+        for (let i = 0; i < matrix.length; i++) {
+          const r = matrix[i];
+          if (!r || r.every(c => c === null || c === undefined || String(c).trim() === '')) { emptyRows++; continue; }
+          const get = key => {
+            const idx = colMap[key];
+            return (idx >= 0 && idx < r.length && r[idx] !== null && r[idx] !== undefined) ? r[idx] : '';
+          };
+
+          const orderId = String(get('orderId') || `ROW-${i + 1}`).trim();
+          const skuId = String(get('skuId') || '').trim();
+          const productName = String(get('productName') || 'Produk Tanpa Nama').trim();
+          const productId = String(get('productId') || '').trim();
+          const contentId = String(get('contentId') || '').trim();
+          const orderDateRaw = String(get('orderDate') || '').trim();
+          const priceNum = parseIdNumber(get('price'));
+          const unitsNum = parseIdNumber(get('units'));
+          const gmvNum = parseIdNumber(get('gmv'));
+          const estStdNum = parseIdNumber(get('estStd'));
+
+          // Composite row identity: NEVER deduplicate solely on orderId (multi-SKU orders share orderId!)
+          const compositeKey = [orderId, skuId, productId || productName, contentId, priceNum ?? '', unitsNum ?? '', gmvNum ?? '', estStdNum ?? '', orderDateRaw].join('|');
+          if (seenComposite.has(compositeKey)) {
+            exactDuplicates++;
+            continue;
+          }
+          seenComposite.add(compositeKey);
+
+          const orderDateObj = parseDateValue(orderDateRaw);
+          if (!orderDateObj) invalidDates++;
+          const settleDateObj = parseDateValue(get('settleDate'));
+
+          const statusRaw = String(get('status') || '').trim();
+          if (!statusRaw) missingStatus++;
+          const statusKey = normalizeStatus(statusRaw);
+
+          const units = unitsNum ?? 0;
+          const refunds = parseIdNumber(get('refunds')) ?? 0;
+          const price = priceNum ?? 0;
+          const gmv = gmvNum ?? (price * units);
+
+          const estStd = estStdNum ?? 0;
+          const estShopAds = parseIdNumber(get('estShopAds')) ?? 0;
+          const estBonus = (parseIdNumber(get('estBonus')) ?? 0) + (parseIdNumber(get('estPartnerBonus')) ?? 0);
+          const estComm = estStd + estShopAds + estBonus;
+
+          const actStd = parseIdNumber(get('actStd')) ?? 0;
+          const actShopAds = parseIdNumber(get('actShopAds')) ?? 0;
+          const actBonus = (parseIdNumber(get('actBonus')) ?? 0) + (parseIdNumber(get('actPartnerBonus')) ?? 0);
+          const taxes = (parseIdNumber(get('taxIsr')) ?? 0) + (parseIdNumber(get('taxIva')) ?? 0) + (parseIdNumber(get('taxCedular')) ?? 0) + (parseIdNumber(get('taxPit')) ?? 0);
+          const partnerShare = parseIdNumber(get('partnerShare')) ?? 0;
+
+          const totalFinalRaw = parseIdNumber(get('totalFinal'));
+          const finalEarned = statusKey === 'PAID'
+            ? (totalFinalRaw !== null ? totalFinalRaw : Math.max(0, actStd + actShopAds + actBonus - taxes - partnerShare))
+            : 0;
+
+          let settleDays = null;
+          if (orderDateObj && settleDateObj && settleDateObj >= orderDateObj) {
+            settleDays = (settleDateObj.getTime() - orderDateObj.getTime()) / 86400000;
+          }
+
+          const rawObj = {};
+          headers.forEach((h, hi) => {
+            const v = r[hi];
+            if (h && v !== null && v !== undefined && String(v).trim() !== '' && String(v).trim() !== '/') {
+              rawObj[String(h).trim()] = String(v).trim();
+            }
+          });
+
+          records.push({
+            rowNum: i + 2,
+            orderId,
+            skuId,
+            productName,
+            productId,
+            price,
+            units,
+            refunds,
+            shopName: String(get('shopName') || 'Toko Tidak Diketahui').trim(),
+            currency: String(get('currency') || 'IDR').trim(),
+            statusRaw: statusRaw || '(Kosong)',
+            statusKey,
+            indirectRaw: String(get('indirect') || '').trim(),
+            contentType: String(get('contentType') || 'Tidak Tercatat').trim(),
+            contentId: contentId || '-',
+            rateStr: String(get('rateStd') || '').trim(),
+            rateNum: parseIdNumber(get('rateStd')) ?? 0,
+            gmv,
+            estStd,
+            estShopAds,
+            estBonus,
+            estComm,
+            actStd,
+            actShopAds,
+            actBonus,
+            taxes,
+            partnerShare,
+            finalEarned,
+            orderDate: orderDateObj,
+            orderDateIso: toIsoDate(orderDateObj),
+            settleDate: settleDateObj,
+            settleDateIso: toIsoDate(settleDateObj),
+            settleDays,
+            raw: rawObj,
+          });
+        }
+
+        const mappedCount = Object.values(colMap).filter(v => v >= 0).length;
+        return {
+          records,
+          quality: {
+            rawRowCount: matrix.length,
+            validRowCount: records.length,
+            emptyRows,
+            exactDuplicates,
+            invalidDates,
+            missingStatus,
+            mappedCount,
+            totalHeaders: headers.length,
+            uniqueOrderCount: new Set(records.map(r => r.orderId)).size,
+          }
+        };
+      }
+
+      // --- Processing Overlay Animation ---
+      function runProcessingAnimation(fileName, onComplete) {
+        const overlay = document.getElementById('processingOverlay');
+        const bar = document.getElementById('procProgressBar');
+        const steps = document.querySelectorAll('#procSteps li');
+        document.getElementById('procFileLabel').textContent = fileName;
+        const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduced) { onComplete(); return; }
+
+        steps.forEach((li, idx) => {
+          li.className = 'flex items-center gap-2.5 subtle-text';
+          const d = li.querySelector('.step-dot');
+          d.className = 'step-dot w-5 h-5 rounded-full border border-[#D2D2CB] flex items-center justify-center text-[10px] shrink-0';
+          d.textContent = String(idx + 1);
+        });
+        bar.style.width = '12%';
+        overlay.classList.remove('hidden'); overlay.classList.add('flex');
+
+        [100, 300, 520, 740].forEach((t, idx) => {
+          setTimeout(() => {
+            bar.style.width = `${(idx + 1) * 25}%`;
+            steps.forEach((li, si) => {
+              const d = li.querySelector('.step-dot');
+              if (si < idx) {
+                li.className = 'flex items-center gap-2.5 font-medium';
+                d.className = 'step-dot w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] shrink-0';
+                d.textContent = '✓';
+              } else if (si === idx) {
+                li.className = 'flex items-center gap-2.5 font-bold';
+                d.className = 'step-dot w-5 h-5 rounded-full bg-[#111214] dark:bg-white text-white dark:text-[#111214] flex items-center justify-center text-[10px] shrink-0';
+              }
+            });
+          }, t);
+        });
+
+        setTimeout(() => {
+          const last = steps[steps.length - 1].querySelector('.step-dot');
+          last.className = 'step-dot w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] shrink-0';
+          last.textContent = '✓';
+          onComplete();
+          setTimeout(() => { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }, 160);
+        }, 920);
+      }
+
+      // --- Activate & Reset Lifecycle ---
+      function activateReport(headers, matrix, fileName, colMapOverride = null, animate = true) {
+        const colMap = colMapOverride || detectColumns(headers);
+        const { records, quality } = processMatrixWithMap(headers, matrix, colMap);
+        if (!records.length) {
+          showToast('File tidak memiliki baris data yang valid untuk dianalisis.', 'error');
+          return;
+        }
+
+        const commit = () => {
+          state.hasData = true;
+          state.fileName = fileName;
+          state.rawHeaders = headers;
+          state.rawMatrix = matrix;
+          state.colMap = colMap;
+          state.quality = quality;
+          state.records = records;
+          state.orderPage = 1;
+
+          // Optional persistence ONLY if user opted in
+          try {
+            if (localStorage.getItem(STORAGE_REMEMBER_KEY) === 'true' && matrix.length <= 2500) {
+              localStorage.setItem(STORAGE_LAST_REPORT_KEY, JSON.stringify({ fileName, headers, matrix }));
+            }
+          } catch (_) {}
+
+          // Populate dynamic filters
+          const statuses = Array.from(new Set(records.map(r => r.statusRaw))).sort((a, b) => a.localeCompare(b));
+          const stOpts = '<option value="ALL">Semua Status (' + statuses.length + ')</option>' +
+            statuses.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+          document.getElementById('filterStatus').innerHTML = stOpts;
+          document.getElementById('mFilterStatus').innerHTML = stOpts;
+
+          const shops = Array.from(new Set(records.map(r => r.shopName))).sort((a, b) => a.localeCompare(b));
+          const shOpts = '<option value="ALL">Semua Toko (' + shops.length + ')</option>' +
+            shops.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+          document.getElementById('filterShop').innerHTML = shOpts;
+          document.getElementById('mFilterShop').innerHTML = shOpts;
+
+          const ctypes = Array.from(new Set(records.map(r => r.contentType))).sort((a, b) => a.localeCompare(b));
+          const ctOpts = '<option value="ALL">Semua Konten</option>' +
+            ctypes.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+          document.getElementById('filterContentType').innerHTML = ctOpts;
+          document.getElementById('mFilterContentType').innerHTML = ctOpts;
+
+          const validDates = records.map(r => r.orderDateIso).filter(Boolean).sort();
+          state.filters = { dateFrom: validDates[0] || '', dateTo: validDates[validDates.length - 1] || '', status: 'ALL', shop: 'ALL', contentType: 'ALL', preset: 'ALL' };
+          updatePresetButtons('ALL');
+
+          // Show active dashboard & controls
+          document.getElementById('emptyStateView').classList.add('hidden');
+          document.getElementById('activeDashboard').classList.remove('hidden');
+          ['btnOpenMapping', 'btnOpenExport', 'btnResetData'].forEach(id => {
+            const b = document.getElementById(id);
+            b.classList.remove('hidden'); b.classList.add('inline-flex');
+          });
+          document.getElementById('btnOpenFilterSheet').classList.remove('hidden');
+          document.getElementById('btnOpenFilterSheet').classList.add('flex');
+
+          const period = state.filters.dateFrom && state.filters.dateTo
+            ? `${formatDateDisplay(parseDateValue(state.filters.dateFrom))} – ${formatDateDisplay(parseDateValue(state.filters.dateTo))}`
+            : 'Tanggal tidak terdeteksi';
+          document.getElementById('headerSubtitle').textContent = `${fileName} • ${period}`;
+          const pill = document.getElementById('headerStatusPill');
+          pill.textContent = `${formatNum(records.length)} baris`;
+          pill.className = 'hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
+          document.getElementById('dropReplaceNote').textContent = 'Mengunggah file baru akan menggantikan laporan yang sedang aktif (tidak digabung otomatis).';
+
+          if (state.activeTab === 'radar') switchTab('overview');
+          applyFiltersAndRender();
+          showToast(`Berhasil memproses ${formatNum(records.length)} baris dari ${fileName}`, 'success');
+        };
+
+        if (animate) runProcessingAnimation(fileName, commit);
+        else commit();
+      }
+
+      function executeFullReset() {
+        // Destroy all Chart.js instances
+        Object.keys(state.charts).forEach(k => {
+          if (state.charts[k]) { state.charts[k].destroy(); delete state.charts[k]; }
+        });
+        Object.keys(state.animFrames).forEach(k => cancelAnimationFrame(state.animFrames[k]));
+        state.animFrames = {};
+
+        // Clear all state
+        state.hasData = false;
+        state.fileName = '';
+        state.rawHeaders = [];
+        state.rawMatrix = [];
+        state.colMap = {};
+        state.quality = null;
+        state.records = [];
+        state.filteredRecords = [];
+        state.recommendations = [];
+        state.filters = { dateFrom: '', dateTo: '', status: 'ALL', shop: 'ALL', contentType: 'ALL', preset: 'ALL' };
+        state.productSearch = '';
+        state.orderSearch = '';
+        state.orderPage = 1;
+
+        // Clear cached user report (preserve theme preference!)
+        try { localStorage.removeItem(STORAGE_LAST_REPORT_KEY); } catch (_) {}
+
+        // Reset UI back to pure empty state
+        document.getElementById('activeDashboard').classList.add('hidden');
+        document.getElementById('emptyStateView').classList.remove('hidden');
+        ['btnOpenMapping', 'btnOpenExport', 'btnResetData', 'btnOpenFilterSheet'].forEach(id => {
+          const b = document.getElementById(id);
+          b.classList.add('hidden'); b.classList.remove('inline-flex', 'flex');
+        });
+        document.getElementById('headerSubtitle').textContent = 'Belum ada laporan aktif';
+        const pill = document.getElementById('headerStatusPill');
+        pill.textContent = 'Siap Upload';
+        pill.className = 'hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold subtle-box muted-text';
+        document.getElementById('dropReplaceNote').textContent = 'Mendukung .xlsx, .xls, dan .csv — diproses lokal di browser Anda.';
+        document.getElementById('productSearch').value = '';
+        document.getElementById('orderSearch').value = '';
+
+        switchTab('overview');
+        toggleModal('resetModal', false);
+        showToast('Seluruh data analisis telah dihapus. Silakan upload file baru.', 'info');
+      }
+
+      // --- Filtering & Rendering ---
+      function syncFilterInputs() {
+        const f = state.filters;
+        document.getElementById('filterDateFrom').value = f.dateFrom;
+        document.getElementById('filterDateTo').value = f.dateTo;
+        document.getElementById('filterStatus').value = f.status;
+        document.getElementById('filterShop').value = f.shop;
+        document.getElementById('filterContentType').value = f.contentType;
+        document.getElementById('mFilterDateFrom').value = f.dateFrom;
+        document.getElementById('mFilterDateTo').value = f.dateTo;
+        document.getElementById('mFilterStatus').value = f.status;
+        document.getElementById('mFilterShop').value = f.shop;
+        document.getElementById('mFilterContentType').value = f.contentType;
+
+        const active = f.status !== 'ALL' || f.shop !== 'ALL' || f.contentType !== 'ALL' || f.preset !== 'ALL';
+        document.getElementById('mobileFilterDot').classList.toggle('hidden', !active);
+        document.getElementById('btnMobileReset').classList.toggle('hidden', !active);
+        const parts = [];
+        if (f.status !== 'ALL') parts.push(f.status);
+        if (f.shop !== 'ALL') parts.push(f.shop);
+        if (f.contentType !== 'ALL') parts.push(f.contentType);
+        document.getElementById('mobileFilterText').textContent = parts.length
+          ? `Filter: ${parts.join(' • ')}`
+          : `${formatNum(state.filteredRecords.length)} baris • ${formatDateDisplay(parseDateValue(f.dateFrom))} – ${formatDateDisplay(parseDateValue(f.dateTo))}`;
+      }
+
+      function applyFiltersAndRender() {
+        if (!state.hasData) return;
+        const f = state.filters;
+        state.filteredRecords = state.records.filter(r => {
+          if (f.dateFrom && r.orderDateIso && r.orderDateIso < f.dateFrom) return false;
+          if (f.dateTo && r.orderDateIso && r.orderDateIso > f.dateTo) return false;
+          if (f.status !== 'ALL' && r.statusRaw !== f.status) return false;
+          if (f.shop !== 'ALL' && r.shopName !== f.shop) return false;
+          if (f.contentType !== 'ALL' && r.contentType !== f.contentType) return false;
+          return true;
+        });
+        state.orderPage = 1;
+        syncFilterInputs();
+        renderDashboard();
+      }
+
+      function computePeriodComparison(data) {
+        const dated = data.filter(r => r.orderDateIso).sort((a, b) => a.orderDateIso.localeCompare(b.orderDateIso));
+        const uniqueDays = Array.from(new Set(dated.map(r => r.orderDateIso)));
+        if (uniqueDays.length < 4) {
+          return { comparable: false, note: `Rentang hanya ${uniqueDays.length} hari — belum cukup untuk perbandingan setara.` };
+        }
+        const half = Math.floor(uniqueDays.length / 2);
+        const prevDays = new Set(uniqueDays.slice(0, half));
+        const currDays = new Set(uniqueDays.slice(uniqueDays.length - half));
+        const sum = (set) => {
+          let gmv = 0, units = 0, comm = 0; const orders = new Set();
+          dated.forEach(r => {
+            if (!set.has(r.orderDateIso)) return;
+            gmv += r.gmv; units += r.units; orders.add(r.orderId);
+            if (r.statusKey !== 'INELIGIBLE') comm += (r.statusKey === 'PAID' ? r.finalEarned : r.estComm);
+          });
+          return { gmv, units, comm, orders: orders.size };
+        };
+        const prev = sum(prevDays), curr = sum(currDays);
+        const pct = (c, p) => p > 0 ? ((c - p) / p) * 100 : null;
+        return {
+          comparable: true,
+          halfDays: half,
+          prevRange: `${formatDateDisplay(parseDateValue(uniqueDays[0]))}–${formatDateDisplay(parseDateValue(uniqueDays[half - 1]))}`,
+          currRange: `${formatDateDisplay(parseDateValue(uniqueDays[uniqueDays.length - half]))}–${formatDateDisplay(parseDateValue(uniqueDays[uniqueDays.length - 1]))}`,
+          prev, curr,
+          gmvPct: pct(curr.gmv, prev.gmv),
+          unitsPct: pct(curr.units, prev.units),
+          commPct: pct(curr.comm, prev.comm),
+        };
+      }
+
+      function renderDashboard() {
+        const data = state.filteredRecords;
+        const pop = computePeriodComparison(data);
+        renderKPIs(data, pop);
+        renderFormulaAudit();
+        renderTrendChart(data);
+        renderStatusBreakdown(data);
+        renderTimePatternChart(data);
+        renderProductsAndShops(data);
+        renderBusinessInsights(data, pop);
+        renderOrdersTab(data);
+      }
+
+      function renderKPIs(data, pop) {
+        const grp = { PAID: { orders: new Set(), units: 0, est: 0, act: 0 }, PROCESSING: { orders: new Set(), units: 0, est: 0, act: 0 }, UNPAID: { orders: new Set(), units: 0, est: 0, act: 0 }, INELIGIBLE: { orders: new Set(), units: 0, est: 0, act: 0 } };
+        const allOrders = new Set(), validOrders = new Set();
+        let totalGmv = 0, validGmv = 0, units = 0, refunds = 0, totalEst = 0, totalBonus = 0, totalTax = 0, totalShare = 0;
+
+        for (const r of data) {
+          const g = grp[r.statusKey];
+          g.orders.add(r.orderId); g.units += r.units; g.est += r.estComm; g.act += r.finalEarned;
+          allOrders.add(r.orderId);
+          totalGmv += r.gmv; units += r.units; refunds += r.refunds; totalEst += r.estComm;
+          totalBonus += (r.statusKey === 'PAID' ? r.actBonus : r.estBonus);
+          totalTax += r.taxes; totalShare += r.partnerShare;
+          if (r.statusKey !== 'INELIGIBLE') { validOrders.add(r.orderId); validGmv += r.gmv; }
+        }
+
+        const totalValidPot = grp.PAID.act + grp.PROCESSING.est + grp.UNPAID.est;
+        const paidPct = totalValidPot > 0 ? (grp.PAID.act / totalValidPot) * 100 : 0;
+        const procPct = totalValidPot > 0 ? (grp.PROCESSING.est / totalValidPot) * 100 : 0;
+        const unpPct = totalValidPot > 0 ? (grp.UNPAID.est / totalValidPot) * 100 : 0;
+        const ineligPct = allOrders.size > 0 ? ((grp.INELIGIBLE.orders.size / allOrders.size) * 100).toFixed(1) : '0.0';
+        const netUnits = Math.max(0, units - refunds);
+        const aov = validOrders.size > 0 ? validGmv / validOrders.size : 0;
+        const refPct = units > 0 ? ((refunds / units) * 100).toFixed(1) : '0.0';
+
+        animateCounter('kpiFinalEarnings', grp.PAID.act, formatIDR);
+        animateCounter('kpiPaidComm', grp.PAID.act, formatIDR);
+        animateCounter('kpiProcessingComm', grp.PROCESSING.est, formatIDR);
+        animateCounter('kpiUnpaidComm', grp.UNPAID.est, formatIDR);
+        animateCounter('kpiIneligibleComm', grp.INELIGIBLE.est, formatIDR);
+        animateCounter('kpiTotalGmv', totalGmv, formatCompactIDR);
+        animateCounter('kpiNetUnits', netUnits, v => `${formatNum(v)} unit`);
+        animateCounter('kpiAov', aov, formatCompactIDR);
+
+        document.getElementById('kpiValidPotentialSub').textContent = `Total Potensi Valid: ${formatIDR(totalValidPot)} • ${formatNum(data.length)} baris`;
+        document.getElementById('kpiPaidRatePill').textContent = `${paidPct.toFixed(1)}% Cair`;
+        document.getElementById('kpiHeroOrdersText').textContent = `${formatNum(validOrders.size)} / ${formatNum(allOrders.size)} pesanan valid`;
+        document.getElementById('barPaid').style.width = `${paidPct}%`;
+        document.getElementById('barProcessing').style.width = `${procPct}%`;
+        document.getElementById('barUnpaid').style.width = `${unpPct}%`;
+
+        document.getElementById('kpiPaidSub').textContent = `${formatNum(grp.PAID.orders.size)} pesanan • ${formatNum(grp.PAID.units)} unit`;
+        document.getElementById('kpiProcessingSub').textContent = `${formatNum(grp.PROCESSING.orders.size)} pesanan • ${formatNum(grp.PROCESSING.units)} unit`;
+        document.getElementById('kpiUnpaidSub').textContent = `${formatNum(grp.UNPAID.orders.size)} pesanan • ${formatNum(grp.UNPAID.units)} unit`;
+        document.getElementById('kpiIneligibleSub').textContent = `${formatNum(grp.INELIGIBLE.orders.size)} pesanan • ${ineligPct}% batal`;
+
+        document.getElementById('kpiEstTotal').textContent = formatIDR(totalEst);
+        document.getElementById('kpiEstVsActSub').textContent = `Aktual cair: ${formatIDR(grp.PAID.act)}`;
+        document.getElementById('kpiBonusTotal').textContent = formatIDR(totalBonus);
+        document.getElementById('kpiTaxTotalSub').textContent = `Pajak & bagi hasil: ${formatIDR(totalTax + totalShare)}`;
+        document.getElementById('kpiUnitsGross').textContent = `${formatNum(units)} unit`;
+        document.getElementById('kpiRefundSub').textContent = `Refund: ${formatNum(refunds)} unit (${refPct}%)`;
+
+        const popEl = document.getElementById('kpiPopDelta');
+        const popSub = document.getElementById('kpiPopSub');
+        if (pop.comparable && pop.commPct !== null) {
+          const sign = pop.commPct >= 0 ? '+' : '';
+          popEl.textContent = `${sign}${pop.commPct.toFixed(1)}%`;
+          popEl.className = `num text-base font-bold mt-1 ${pop.commPct >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`;
+          popSub.textContent = `${pop.halfDays}H akhir vs ${pop.halfDays}H awal (Komisi)`;
+        } else {
+          popEl.textContent = 'Belum cukup';
+          popEl.className = 'num text-base font-bold mt-1 muted-text';
+          popSub.textContent = pop.note || 'Butuh minimal 4 hari data';
+        }
+      }
+
+      function renderFormulaAudit() {
+        const colName = k => state.colMap[k] >= 0 ? `"${state.rawHeaders[state.colMap[k]]}"` : '(Tidak ditemukan di file)';
+        document.getElementById('formulaAuditBody').innerHTML = `
+          <div><strong>Penghasilan Akhir (Aktual):</strong> Dijumlahkan dari ${escapeHtml(colName('totalFinal'))} khusus baris berstatus sudah dibayar (tanpa double-counting).</div>
+          <div><strong>Estimasi Komisi:</strong> Penjumlahan ${escapeHtml(colName('estStd'))} + ${escapeHtml(colName('estShopAds'))} + ${escapeHtml(colName('estBonus'))} untuk pesanan aktif/diproses/belum dibayar.</div>
+          <div><strong>Total GMV:</strong> Nilai transaksi kotor dari ${escapeHtml(colName('gmv'))} — dipisahkan tegas dari komisi affiliate.</div>
+          <div><strong>Anti-Duplikat Baris:</strong> Menggunakan identitas komposit (ID Pesanan + SKU + Produk + Konten + Harga + Unit + Waktu), sehingga multi-SKU dalam 1 ID Pesanan tetap utuh.</div>
+        `;
+      }
+
+      // --- Charts ---
+      function setChart(id, config) {
+        if (state.charts[id]) state.charts[id].destroy();
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+        const isDark = document.documentElement.classList.contains('dark');
+        const gridColor = isDark ? '#262930' : '#EFEFEB';
+        const tickColor = isDark ? '#9CA1AC' : '#666A73';
+        if (config.options?.scales) {
+          Object.values(config.options.scales).forEach(sc => {
+            if (sc.grid && sc.grid.display !== false) sc.grid.color = gridColor;
+            if (sc.ticks) sc.ticks.color = tickColor;
+          });
+        }
+        if (config.options?.plugins?.legend?.labels) config.options.plugins.legend.labels.color = tickColor;
+        state.charts[id] = new Chart(canvas.getContext('2d'), config);
+      }
+
+      function getBucketKey(d, gran) {
+        if (gran === 'month') return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+        if (gran === 'week') {
+          const dt = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+          const diff = dt.getDate() - dt.getDay() + (dt.getDay() === 0 ? -6 : 1);
+          return toIsoDate(new Date(dt.setDate(diff)));
+        }
+        return toIsoDate(d);
+      }
+
+      function renderTrendChart(data) {
+        const useSettle = state.trendMetric === 'settlement';
+        document.getElementById('trendSubtitle').textContent = useSettle
+          ? 'Komisi aktual berdasarkan tanggal penyelesaian pembayaran komisi'
+          : 'Pergerakan performa berdasarkan tanggal checkout pesanan';
+
+        const buckets = new Map();
+        for (const r of data) {
+          const dt = useSettle ? r.settleDate : r.orderDate;
+          if (!dt) continue;
+          const k = getBucketKey(dt, state.trendGranularity);
+          if (!buckets.has(k)) buckets.set(k, { paid: 0, pending: 0, inelig: 0, gmv: 0, units: 0, orders: new Set() });
+          const b = buckets.get(k);
+          if (r.statusKey === 'PAID') b.paid += r.finalEarned;
+          else if (r.statusKey === 'INELIGIBLE') b.inelig += r.estComm;
+          else b.pending += r.estComm;
+          b.gmv += r.gmv; b.units += r.units; b.orders.add(r.orderId);
+        }
+        const keys = Array.from(buckets.keys()).sort();
+        const labels = keys.map(k => {
+          const d = parseDateValue(k);
+          if (!d) return k;
+          if (state.trendGranularity === 'month') return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+          const s = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+          return state.trendGranularity === 'week' ? `Mg ${s}` : s;
+        });
+
+        let datasets = [], isCurr = false, type = 'bar', stacked = false;
+        if (state.trendMetric === 'commission') {
+          isCurr = true; stacked = true;
+          datasets = [
+            { label: 'Sudah Dibayar', data: keys.map(k => Math.round(buckets.get(k).paid)), backgroundColor: '#059669', borderRadius: 4 },
+            { label: 'Proses / Belum', data: keys.map(k => Math.round(buckets.get(k).pending)), backgroundColor: '#0284c7', borderRadius: 4 },
+            { label: 'Tidak Memenuhi Syarat', data: keys.map(k => Math.round(buckets.get(k).inelig)), backgroundColor: '#fda4af', borderRadius: 4 },
+          ];
+        } else if (state.trendMetric === 'settlement') {
+          isCurr = true;
+          datasets = [{ label: 'Komisi Cair (Tgl Penyelesaian)', data: keys.map(k => Math.round(buckets.get(k).paid)), backgroundColor: '#059669', borderRadius: 5 }];
+        } else if (state.trendMetric === 'gmv') {
+          isCurr = true; type = 'line';
+          datasets = [{ label: 'GMV', data: keys.map(k => Math.round(buckets.get(k).gmv)), borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.1)', fill: true, tension: 0.3, pointRadius: 3 }];
+        } else if (state.trendMetric === 'units') {
+          type = 'line';
+          datasets = [{ label: 'Unit Terjual', data: keys.map(k => buckets.get(k).units), borderColor: '#0284c7', backgroundColor: 'rgba(2,132,199,0.1)', fill: true, tension: 0.3, pointRadius: 3 }];
+        } else {
+          datasets = [{ label: 'Pesanan Unik', data: keys.map(k => buckets.get(k).orders.size), backgroundColor: '#111214', borderRadius: 5 }];
+        }
+
+        setChart('trendChart', {
+          type, data: { labels, datasets },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 7, font: { size: 11 } } },
+              tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${isCurr ? formatIDR(ctx.parsed.y) : formatNum(ctx.parsed.y)}` } }
+            },
+            scales: {
+              x: { stacked, grid: { display: false }, ticks: { font: { size: 11 } } },
+              y: { stacked, beginAtZero: true, grid: {}, ticks: { font: { size: 11 }, callback: v => isCurr ? formatCompactIDR(v) : formatNum(v) } }
+            }
+          }
+        });
+      }
+
+      function renderStatusBreakdown(data) {
+        const rawMap = new Map();
+        data.forEach(r => {
+          if (!rawMap.has(r.statusRaw)) rawMap.set(r.statusRaw, { raw: r.statusRaw, key: r.statusKey, orders: new Set(), units: 0, val: 0 });
+          const s = rawMap.get(r.statusRaw);
+          s.orders.add(r.orderId); s.units += r.units;
+          s.val += (r.statusKey === 'PAID' ? r.finalEarned : r.estComm);
+        });
+        const items = Array.from(rawMap.values()).sort((a, b) => b.val - a.val);
+
+        setChart('statusChart', {
+          type: 'doughnut',
+          data: {
+            labels: items.map(i => i.raw),
+            datasets: [{ data: items.map(i => Math.round(i.val)), backgroundColor: items.map(i => STATUS_META[i.key].color), borderWidth: 2, borderColor: document.documentElement.classList.contains('dark') ? '#16181C' : '#FFFFFF' }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false, cutout: '66%',
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${formatIDR(ctx.parsed)}` } } }
+          }
+        });
+
+        document.getElementById('statusTableBody').innerHTML = items.map(i => `
+          <tr>
+            <td class="py-2 pr-2">
+              <span class="inline-flex items-center gap-1.5 font-semibold"><span class="w-2 h-2 rounded-full" style="background:${STATUS_META[i.key].color}"></span>${escapeHtml(i.raw)}</span>
+              <span class="block text-[10px] muted-text">Grup: ${STATUS_META[i.key].label}</span>
+            </td>
+            <td class="py-2 px-2 text-right num">${formatNum(i.orders.size)}</td>
+            <td class="py-2 px-2 text-right num">${formatNum(i.units)}</td>
+            <td class="py-2 pl-2 text-right num font-bold">${formatIDR(i.val)}</td>
+          </tr>
+        `).join('') || `<tr><td colspan="4" class="py-4 text-center muted-text">Tidak ada data.</td></tr>`;
+      }
+
+      function renderTimePatternChart(data) {
+        if (state.timePatternMode === 'hour') {
+          const hours = new Array(24).fill(0);
+          data.forEach(r => { if (r.orderDate) hours[r.orderDate.getHours()] += r.units; });
+          const maxV = Math.max(...hours), peak = hours.indexOf(maxV);
+          document.getElementById('peakTimeBadge').textContent = maxV > 0 ? `Pukul ${String(peak).padStart(2, '0')}:00 (${formatNum(maxV)} unit)` : '-';
+          setChart('timePatternChart', {
+            type: 'bar',
+            data: { labels: hours.map((_, h) => `${String(h).padStart(2, '0')}:00`), datasets: [{ label: 'Unit', data: hours, backgroundColor: hours.map(v => v === maxV && v > 0 ? '#059669' : '#9498A1'), borderRadius: 4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 12 } }, y: { beginAtZero: true, grid: {}, ticks: { font: { size: 11 } } } } }
+          });
+        } else {
+          const days = new Array(7).fill(0), names = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+          data.forEach(r => { if (r.orderDate) days[(r.orderDate.getDay() + 6) % 7] += r.units; });
+          const maxV = Math.max(...days), peak = days.indexOf(maxV);
+          document.getElementById('peakTimeBadge').textContent = maxV > 0 ? `Hari ${names[peak]} (${formatNum(maxV)} unit)` : '-';
+          setChart('timePatternChart', {
+            type: 'bar',
+            data: { labels: names, datasets: [{ label: 'Unit', data: days, backgroundColor: days.map(v => v === maxV && v > 0 ? '#059669' : '#9498A1'), borderRadius: 6 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 11 } } }, y: { beginAtZero: true, grid: {}, ticks: { font: { size: 11 } } } } }
+          });
+        }
+      }
+
+      // --- Products, Stores & Content ---
+      function aggregateProducts(data) {
+        const map = new Map();
+        for (const r of data) {
+          const k = r.productId || r.productName;
+          if (!map.has(k)) map.set(k, { key: k, name: r.productName, shop: r.shopName, rateStr: r.rateStr || '-', rateNum: r.rateNum, orders: new Set(), validOrders: new Set(), units: 0, refunds: 0, gmv: 0, paidComm: 0, pendingComm: 0, validComm: 0, rows: [] });
+          const p = map.get(k);
+          p.orders.add(r.orderId); p.rows.push(r);
+          if (r.statusKey !== 'INELIGIBLE') p.validOrders.add(r.orderId);
+          p.units += r.units; p.refunds += r.refunds; p.gmv += r.gmv;
+          if (r.statusKey === 'PAID') { p.paidComm += r.finalEarned; p.validComm += r.finalEarned; }
+          else if (r.statusKey !== 'INELIGIBLE') { p.pendingComm += r.estComm; p.validComm += r.estComm; }
+        }
+        return Array.from(map.values());
+      }
+
+      function renderProductsAndShops(data) {
+        const prods = aggregateProducts(data);
+        const metric = state.productChartMetric;
+        const top10 = [...prods].sort((a, b) => b[metric] - a[metric]).slice(0, 10);
+        const isCurr = metric !== 'units';
+        setChart('topProductsChart', {
+          type: 'bar',
+          data: { labels: top10.map(p => p.name.length > 34 ? p.name.slice(0, 34) + '…' : p.name), datasets: [{ label: isCurr ? 'Nilai (Rp)' : 'Unit', data: top10.map(p => Math.round(p[metric])), backgroundColor: '#059669', borderRadius: 5 }] },
+          options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { title: it => top10[it[0].dataIndex]?.name || '', label: ctx => isCurr ? formatIDR(ctx.parsed.x) : `${formatNum(ctx.parsed.x)} unit` } } }, scales: { x: { beginAtZero: true, grid: {}, ticks: { font: { size: 11 }, callback: v => isCurr ? formatCompactIDR(v) : formatNum(v) } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } } }
+        });
+
+        const ctMap = new Map();
+        let indirectCount = 0, directCount = 0;
+        data.forEach(r => {
+          if (!ctMap.has(r.contentType)) ctMap.set(r.contentType, { type: r.contentType, units: 0 });
+          ctMap.get(r.contentType).units += r.units;
+          if (r.indirectRaw && r.indirectRaw.toLowerCase() !== 'tidak' && r.indirectRaw !== '0' && r.indirectRaw.toLowerCase() !== 'no') indirectCount++;
+          else directCount++;
+        });
+        const ctypes = Array.from(ctMap.values()).sort((a, b) => b.units - a.units);
+        const pal = ['#059669', '#0284c7', '#d97706', '#e11d48', '#666A73'];
+        setChart('contentTypeChart', {
+          type: 'doughnut',
+          data: { labels: ctypes.map(c => c.type), datasets: [{ data: ctypes.map(c => c.units), backgroundColor: ctypes.map((_, i) => pal[i % pal.length]), borderWidth: 2, borderColor: document.documentElement.classList.contains('dark') ? '#16181C' : '#FFFFFF' }] },
+          options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, font: { size: 11 } } } } }
+        });
+        document.getElementById('directVsIndirectBox').textContent = state.colMap.indirect >= 0 && indirectCount > 0
+          ? `Pesanan Langsung: ${formatNum(directCount)} baris • Tidak Langsung: ${formatNum(indirectCount)} baris`
+          : 'Kolom Pesanan Tidak Langsung kosong atau tidak tersedia pada laporan ini.';
+
+        const q = state.productSearch.trim().toLowerCase();
+        const filteredP = prods.filter(p => !q || p.name.toLowerCase().includes(q) || p.shop.toLowerCase().includes(q)).sort((a, b) => b[metric] - a[metric]);
+        document.getElementById('productCountLabel').textContent = `${formatNum(filteredP.length)} produk unik — klik baris untuk detail`;
+        document.getElementById('productTableBody').innerHTML = filteredP.map(p => {
+          const pct = p.orders.size > 0 ? Math.round((p.validOrders.size / p.orders.size) * 100) : 0;
+          return `
+            <tr data-prod-key="${escapeHtml(p.key)}" class="prod-row cursor-pointer hover:bg-[var(--bg-subtle)] transition">
+              <td class="py-3 pr-3 max-w-xs"><p class="font-semibold line-clamp-2 leading-snug">${escapeHtml(p.name)}</p><p class="text-[11px] muted-text mt-0.5">${escapeHtml(p.shop)}</p></td>
+              <td class="py-3 px-2 text-right num muted-text">${escapeHtml(p.rateStr)}</td>
+              <td class="py-3 px-2 text-right num">${formatNum(p.orders.size)}</td>
+              <td class="py-3 px-2 text-right num font-bold">${formatNum(p.units)}</td>
+              <td class="py-3 px-2 text-right num ${p.refunds > 0 ? 'text-rose-600 font-bold' : 'subtle-text'}">${formatNum(p.refunds)}</td>
+              <td class="py-3 px-2 text-right num muted-text">${formatIDR(p.gmv)}</td>
+              <td class="py-3 px-2 text-right num font-bold text-emerald-700 dark:text-emerald-400">${formatIDR(p.paidComm)}</td>
+              <td class="py-3 px-2 text-right num text-sky-700 dark:text-sky-400">${formatIDR(p.pendingComm)}</td>
+              <td class="py-3 pl-2 text-right"><span class="num inline-flex px-2 py-0.5 rounded-md text-[11px] font-bold ${pct >= 75 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : pct >= 50 ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'bg-rose-500/10 text-rose-700 dark:text-rose-400'}">${pct}%</span></td>
+            </tr>
+          `;
+        }).join('') || `<tr><td colspan="9" class="py-8 text-center muted-text">Tidak ada produk yang cocok.</td></tr>`;
+
+        // Shops & Content IDs
+        const shopMap = new Map(), cidMap = new Map();
+        data.forEach(r => {
+          if (!shopMap.has(r.shopName)) shopMap.set(r.shopName, { name: r.shopName, orders: new Set(), inelig: new Set(), units: 0, gmv: 0, paid: 0, pending: 0 });
+          const sh = shopMap.get(r.shopName);
+          sh.orders.add(r.orderId); if (r.statusKey === 'INELIGIBLE') sh.inelig.add(r.orderId);
+          sh.units += r.units; sh.gmv += r.gmv;
+          if (r.statusKey === 'PAID') sh.paid += r.finalEarned; else if (r.statusKey !== 'INELIGIBLE') sh.pending += r.estComm;
+
+          const ck = `${r.contentType}||${r.contentId}`;
+          if (!cidMap.has(ck)) cidMap.set(ck, { id: r.contentId, type: r.contentType, orders: new Set(), days: new Set(), products: new Set(), units: 0, gmv: 0, paid: 0, pending: 0 });
+          const c = cidMap.get(ck);
+          c.orders.add(r.orderId); if (r.orderDateIso) c.days.add(r.orderDateIso); c.products.add(r.productName);
+          c.units += r.units; c.gmv += r.gmv;
+          if (r.statusKey === 'PAID') c.paid += r.finalEarned; else if (r.statusKey !== 'INELIGIBLE') c.pending += r.estComm;
+        });
+
+        const shops = Array.from(shopMap.values()).sort((a, b) => (b.paid + b.pending) - (a.paid + a.pending));
+        document.getElementById('shopTableBody').innerHTML = shops.map(s => {
+          const bPct = s.orders.size > 0 ? Math.round((s.inelig.size / s.orders.size) * 100) : 0;
+          return `
+            <tr class="hover:bg-[var(--bg-subtle)]">
+              <td class="py-2.5 pr-2"><button type="button" data-shop-jump="${escapeHtml(s.name)}" class="shop-jump-btn text-left font-bold hover:text-emerald-600 underline decoration-[var(--border-strong)] underline-offset-4">${escapeHtml(s.name)}</button></td>
+              <td class="py-2.5 px-2 text-right num font-bold">${formatNum(s.units)}</td>
+              <td class="py-2.5 px-2 text-right num muted-text">${formatCompactIDR(s.gmv)}</td>
+              <td class="py-2.5 px-2 text-right num font-bold text-emerald-700 dark:text-emerald-400">${formatIDR(s.paid)}</td>
+              <td class="py-2.5 pl-2 text-right num muted-text">${bPct}%</td>
+            </tr>
+          `;
+        }).join('') || `<tr><td colspan="5" class="py-6 text-center muted-text">Tidak ada toko.</td></tr>`;
+
+        const cids = Array.from(cidMap.values()).sort((a, b) => (b.paid + b.pending) - (a.paid + a.pending));
+        document.getElementById('contentTableBody').innerHTML = cids.slice(0, 20).map(c => `
+          <tr data-cid-detail="${escapeHtml(c.id)}" class="cid-row cursor-pointer hover:bg-[var(--bg-subtle)]">
+            <td class="py-2.5 pr-2 num font-semibold">${escapeHtml(c.id)}</td>
+            <td class="py-2.5 px-2"><span class="px-2 py-0.5 rounded-md text-[10px] font-semibold subtle-box">${escapeHtml(c.type)}</span></td>
+            <td class="py-2.5 px-2 text-right num font-bold">${formatNum(c.units)}</td>
+            <td class="py-2.5 px-2 text-right num font-bold text-emerald-700 dark:text-emerald-400">${formatIDR(c.paid)}</td>
+            <td class="py-2.5 pl-2 text-right num text-sky-700 dark:text-sky-400">${formatIDR(c.pending)}</td>
+          </tr>
+        `).join('') || `<tr><td colspan="5" class="py-6 text-center muted-text">Tidak ada ID konten.</td></tr>`;
+      }
+
+      // --- LOCAL RULE-BASED BUSINESS INTELLIGENCE ENGINE (NO API REQUIRED) ---
+      function renderBusinessInsights(data, pop) {
+        const prods = aggregateProducts(data);
+        const totalUnits = data.reduce((s, r) => s + r.units, 0);
+        const totalGmv = data.reduce((s, r) => s + r.gmv, 0);
+        const paidTotal = data.reduce((s, r) => s + r.finalEarned, 0);
+        const pendingTotal = data.filter(r => r.statusKey === 'PROCESSING' || r.statusKey === 'UNPAID').reduce((s, r) => s + r.estComm, 0);
+        const ineligTotal = data.filter(r => r.statusKey === 'INELIGIBLE').reduce((s, r) => s + r.estComm, 0);
+        const validTotal = paidTotal + pendingTotal;
+        const uniqueOrders = new Set(data.map(r => r.orderId)).size;
+        const ineligOrders = new Set(data.filter(r => r.statusKey === 'INELIGIBLE').map(r => r.orderId)).size;
+        const cancelRate = uniqueOrders > 0 ? (ineligOrders / uniqueOrders) * 100 : 0;
+
+        const topByUnits = [...prods].sort((a, b) => b.units - a.units)[0];
+        const topByComm = [...prods].sort((a, b) => b.validComm - a.validComm)[0];
+
+        // Content aggregation
+        const cidMap = new Map();
+        data.forEach(r => {
+          if (!r.contentId || r.contentId === '-') return;
+          if (!cidMap.has(r.contentId)) cidMap.set(r.contentId, { id: r.contentId, type: r.contentType, units: 0, gmv: 0, validComm: 0, paid: 0, days: new Set(), products: new Set() });
+          const c = cidMap.get(r.contentId);
+          c.units += r.units; c.gmv += r.gmv; c.paid += r.finalEarned;
+          if (r.statusKey !== 'INELIGIBLE') c.validComm += (r.statusKey === 'PAID' ? r.finalEarned : r.estComm);
+          if (r.orderDateIso) c.days.add(r.orderDateIso);
+          c.products.add(r.productName);
+        });
+        const topContents = Array.from(cidMap.values()).sort((a, b) => b.validComm - a.validComm);
+        const topContent = topContents[0];
+        const contentConcPct = (topContent && validTotal > 0) ? (topContent.validComm / validTotal) * 100 : 0;
+
+        const recs = [];
+
+        // Rule 1: Period-over-Period Trend
+        if (pop.comparable && pop.commPct !== null) {
+          if (pop.commPct < -10) {
+            recs.push({
+              id: 'trend_drop', priority: 'Tinggi', type: 'warning',
+              title: 'Penurunan Komisi Dibanding Periode Sebelumnya',
+              detected: `Komisi valid turun ${Math.abs(pop.commPct).toFixed(1)}% pada ${pop.halfDays} hari terakhir (${formatIDR(pop.curr.comm)}) dibanding ${pop.halfDays} hari sebelumnya (${formatIDR(pop.prev.comm)}).`,
+              why: 'Penurunan tren jangka pendek dapat mengindikasikan konten utama mulai kehilangan jangkauan atau stok produk andalan berubah.',
+              action: 'Tinjau konten yang sebelumnya aktif menghasilkan penjualan dan jadwalkan variasi konten baru untuk produk dengan konversi stabil.',
+              benefit: 'Berpotensi memulihkan ritme pesanan harian jika dilakukan sebelum tren turun berlanjut.',
+              confidence: pop.halfDays >= 7 ? 'Tinggi' : 'Sedang',
+              evidence: `Periode 1 (${pop.prevRange}): ${formatIDR(pop.prev.comm)}, ${formatNum(pop.prev.units)} unit. Periode 2 (${pop.currRange}): ${formatIDR(pop.curr.comm)}, ${formatNum(pop.curr.units)} unit.`,
+            });
+          } else if (pop.commPct > 10) {
+            recs.push({
+              id: 'trend_up', priority: 'Sedang', type: 'opportunity',
+              title: 'Momentum Pertumbuhan Positif Terdeteksi',
+              detected: `Komisi valid meningkat +${pop.commPct.toFixed(1)}% pada ${pop.halfDays} hari terakhir (${formatIDR(pop.curr.comm)}) dibanding periode sebelumnya (${formatIDR(pop.prev.comm)}).`,
+              why: 'Momentum positif adalah waktu terbaik untuk menggandakan format konten yang sedang diminati audiens.',
+              action: 'Replikasi hook dan sudut pengambilan gambar dari konten penyumbang terbesar di periode terbaru.',
+              benefit: 'Berpotensi mempertahankan akselerasi konversi selama permintaan masih tinggi.',
+              confidence: pop.halfDays >= 7 ? 'Tinggi' : 'Sedang',
+              evidence: `Periode 1 (${pop.prevRange}): ${formatIDR(pop.prev.comm)}. Periode 2 (${pop.currRange}): ${formatIDR(pop.curr.comm)}.`,
+            });
+          }
+        }
+
+        // Rule 2: Content Concentration Risk
+        if (topContent && contentConcPct >= 45 && topContents.length > 1) {
+          recs.push({
+            id: 'content_conc', priority: 'Tinggi', type: 'warning',
+            title: 'Ketergantungan Tinggi pada Satu ID Konten',
+            detected: `ID Konten ${topContent.id} (${topContent.type}) menyumbang ${contentConcPct.toFixed(1)}% (${formatIDR(topContent.validComm)}) dari seluruh komisi valid.`,
+            why: 'Jika jangkauan satu konten ini melambat, total penghasilan affiliate akan langsung terdampak signifikan.',
+            action: 'Buat 3–5 konten baru dengan sudut berbeda untuk produk yang sama maupun produk pelengkap agar sumber trafik lebih terdiversifikasi.',
+            benefit: 'Mengurangi risiko penurunan pendapatan mendadak akibat perubahan algoritma pada satu konten.',
+            confidence: 'Tinggi',
+            evidence: `ID Konten ${topContent.id}: ${formatNum(topContent.units)} unit, ${topContent.days.size} hari aktif, GMV ${formatIDR(topContent.gmv)}, Komisi Valid ${formatIDR(topContent.validComm)}.`,
+          });
+        }
+
+        // Rule 3: High Volume, Low Commission per Unit
+        const highVolLowComm = prods.filter(p => p.units >= 15 && p.validComm > 0 && (p.validComm / p.units) < 1200).sort((a, b) => b.units - a.units)[0];
+        if (highVolLowComm) {
+          const perUnit = highVolLowComm.validComm / highVolLowComm.units;
+          recs.push({
+            id: 'low_comm_unit', priority: 'Sedang', type: 'opportunity',
+            title: 'Volume Tinggi dengan Komisi per Unit Relatif Kecil',
+            detected: `"${highVolLowComm.name.slice(0, 50)}…" terjual ${formatNum(highVolLowComm.units)} unit namun rata-rata komisi valid hanya ${formatIDR(perUnit)}/unit (rate ${highVolLowComm.rateStr}).`,
+            why: 'Produk bervolume tinggi membuktikan audiens tertarik, tetapi kontribusi rupiahnya bisa lebih optimal dengan produk serupa ber-rate lebih tinggi.',
+            action: 'Gunakan produk ini sebagai pemancing keranjang, sambil menguji produk sejenis dengan harga atau persentase komisi lebih baik.',
+            benefit: 'Berpotensi meningkatkan komisi rata-rata per pesanan tanpa harus melipatgandakan jumlah trafik.',
+            confidence: 'Tinggi',
+            evidence: `Toko: ${highVolLowComm.shop} | Unit: ${formatNum(highVolLowComm.units)} | GMV: ${formatIDR(highVolLowComm.gmv)} | Komisi Valid: ${formatIDR(highVolLowComm.validComm)}.`,
+          });
+        }
+
+        // Rule 4: Pending / Unpaid Accumulation
+        const pendingPct = validTotal > 0 ? (pendingTotal / validTotal) * 100 : 0;
+        if (pendingTotal > 0 && pendingPct >= 20) {
+          recs.push({
+            id: 'pending_watch', priority: 'Sedang', type: 'info',
+            title: 'Pantau Akumulasi Komisi Belum Cair / Diproses',
+            detected: `${formatIDR(pendingTotal)} (${pendingPct.toFixed(1)}% dari komisi valid) masih berstatus Dalam Proses atau Belum Dibayar.`,
+            why: 'Pesanan yang terlalu lama tertahan berisiko gagal cair jika terjadi pembatalan atau kendala pengiriman.',
+            action: 'Bandingkan laporan minggu depan untuk memastikan pesanan tertua berpindah ke status Sudah Dibayar.',
+            benefit: 'Membantu menjaga akurasi proyeksi arus kas affiliate Anda.',
+            confidence: 'Tinggi',
+            evidence: `Komisi Cair: ${formatIDR(paidTotal)} | Proses & Belum Dibayar: ${formatIDR(pendingTotal)}.`,
+          });
+        }
+
+        // Rule 5: Cancellation / Ineligible Rate
+        if (cancelRate >= 15) {
+          recs.push({
+            id: 'cancel_rate', priority: 'Tinggi', type: 'warning',
+            title: 'Tingkat Pesanan Tidak Memenuhi Syarat Cukup Tinggi',
+            detected: `${cancelRate.toFixed(1)}% pesanan (${formatNum(ineligOrders)} dari ${formatNum(uniqueOrders)} pesanan) berstatus Tidak Memenuhi Syarat, dengan potensi komisi hilang ${formatIDR(ineligTotal)}.`,
+            why: 'Tingkat batal/refund tinggi menggerus efektivitas konten Anda secara langsung.',
+            action: 'Periksa produk & toko dengan persentase batal tertinggi di tab Produk & Toko, dan pastikan ekspektasi ukuran/fungsi produk dijelaskan jujur di konten.',
+            benefit: 'Menurunkan rasio pembatalan berpotensi menaikkan realisasi komisi cair dari trafik yang sama.',
+            confidence: uniqueOrders >= 20 ? 'Tinggi' : 'Sedang',
+            evidence: `Pesanan tidak memenuhi syarat: ${formatNum(ineligOrders)} | Estimasi komisi batal: ${formatIDR(ineligTotal)}.`,
+          });
+        }
+
+        // Rule 6: Top Product Scale Opportunity
+        if (topByComm && validTotal > 0) {
+          const share = (topByComm.validComm / validTotal) * 100;
+          recs.push({
+            id: 'top_prod_scale', priority: 'Rendah', type: 'opportunity',
+            title: 'Optimalkan Produk Penyumbang Komisi Terbesar',
+            detected: `"${topByComm.name.slice(0, 50)}…" menyumbang ${share.toFixed(1)}% (${formatIDR(topByComm.validComm)}) dari total komisi valid.`,
+            why: 'Produk ini sudah terbukti menghasilkan nilai komisi terbesar bagi audiens Anda.',
+            action: 'Buat konten lanjutan (misalnya review pemakaian, perbandingan varian, atau Q&A komentar) untuk menjaga visibilitas produk ini.',
+            benefit: 'Berpotensi memperpanjang siklus penjualan produk unggulan Anda.',
+            confidence: 'Tinggi',
+            evidence: `Toko: ${topByComm.shop} | Unit: ${formatNum(topByComm.units)} | GMV: ${formatIDR(topByComm.gmv)} | Komisi Cair: ${formatIDR(topByComm.paidComm)}.`,
+          });
+        }
+
+        state.recommendations = recs;
+
+        // Top Overview Highlight
+        document.getElementById('topInsightText').textContent = recs.length
+          ? `${recs[0].title}: ${recs[0].detected}`
+          : 'Data berhasil dianalisis. Buka tab Business Insights untuk ringkasan lengkap.';
+
+        // Executive Summary
+        document.getElementById('insightsScopeBadge').textContent = `${formatNum(data.length)} baris • ${formatNum(uniqueOrders)} pesanan`;
+        document.getElementById('execSummaryGrid').innerHTML = `
+          <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+            <p class="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Performa Keseluruhan</p>
+            <p class="mt-1 leading-relaxed">Total GMV <strong>${formatIDR(totalGmv)}</strong> dari <strong>${formatNum(totalUnits)} unit</strong> (${formatNum(uniqueOrders)} pesanan), dengan komisi cair <strong>${formatIDR(paidTotal)}</strong> dan pending <strong>${formatIDR(pendingTotal)}</strong>.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+            <p class="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Hal yang Berjalan Baik</p>
+            <p class="mt-1 leading-relaxed">${topByComm ? `Produk unggulan <strong>${escapeHtml(topByComm.name.slice(0, 42))}…</strong> menghasilkan komisi valid <strong>${formatIDR(topByComm.validComm)}</strong>` : 'Distribusi penjualan tercatat stabil'} ${topByUnits ? `dan <strong>${escapeHtml(topByUnits.name.slice(0, 35))}…</strong> memimpin volume (${formatNum(topByUnits.units)} unit).` : ''}</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+            <p class="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Perlu Perhatian</p>
+            <p class="mt-1 leading-relaxed">Rasio pesanan tidak memenuhi syarat tercatat <strong>${cancelRate.toFixed(1)}%</strong> (${formatIDR(ineligTotal)} potensi batal)${contentConcPct >= 45 ? `, dan <strong>${contentConcPct.toFixed(1)}%</strong> komisi bertumpu pada 1 konten.` : '.'}</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+            <p class="text-[10px] uppercase tracking-wider text-emerald-300 font-semibold">Prioritas Strategis Utama</p>
+            <p class="mt-1 leading-relaxed">${recs[0] ? escapeHtml(recs[0].action) : 'Pertahankan konsistensi unggahan pada produk berkonversi tinggi.'}</p>
+          </div>
+        `;
+
+        // Recommendation Cards
+        const prioBadge = p => p === 'Tinggi' ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400' : p === 'Sedang' ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
+        document.getElementById('recommendationsList').innerHTML = recs.map((r, i) => `
+          <div class="card-surface rounded-2xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2.5">
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${prioBadge(r.priority)}">Prioritas ${r.priority}</span>
+                <span class="text-[10px] font-semibold muted-text">Kepercayaan: ${r.confidence}</span>
+              </div>
+              <h4 class="text-sm font-bold leading-snug">${escapeHtml(r.title)}</h4>
+              <p class="text-xs muted-text mt-1.5 leading-relaxed">${escapeHtml(r.detected)}</p>
+              <p class="text-xs mt-2.5 leading-relaxed"><strong>Saran Aksi:</strong> ${escapeHtml(r.action)}</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-[var(--border-hairline)] flex items-center justify-between text-xs">
+              <span class="text-[11px] muted-text">Mesin Aturan Lokal</span>
+              <button type="button" data-rec-idx="${i}" class="rec-evidence-btn font-semibold text-emerald-700 dark:text-emerald-400 hover:underline">Lihat Bukti &amp; Alasan →</button>
+            </div>
+          </div>
+        `).join('') || `<div class="col-span-2 card-surface rounded-2xl p-5 text-xs muted-text">Belum ada rekomendasi khusus untuk filter saat ini.</div>`;
+
+        // Content Promotion Opportunities
+        document.getElementById('contentOppsList').innerHTML = topContents.slice(0, 3).map((c, idx) => `
+          <div class="p-4 rounded-2xl subtle-box flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">Peringkat #${idx + 1}</span>
+                <span class="text-[11px] muted-text">${escapeHtml(c.type)} • ${c.days.size} hari aktif</span>
+              </div>
+              <p class="num text-xs font-bold mt-2">ID: ${escapeHtml(c.id)}</p>
+              <p class="num text-lg font-extrabold text-emerald-700 dark:text-emerald-400 mt-1">${formatIDR(c.validComm)}</p>
+              <p class="text-[11px] muted-text">${formatNum(c.units)} unit • GMV ${formatCompactIDR(c.gmv)} • ${c.products.size} produk</p>
+            </div>
+            <p class="text-[11px] muted-text mt-3 pt-2.5 border-t border-[var(--border-hairline)] leading-relaxed">
+              <strong>Langkah:</strong> Buat variasi konten dengan format serupa. Evaluasi promosi berbayar secara hati-hati jika anggaran iklan tersedia.
+            </p>
+          </div>
+        `).join('') || `<p class="text-xs muted-text col-span-3">Data ID Konten tidak tersedia pada laporan ini.</p>`;
+
+        // Action Plan
+        document.getElementById('actionPlanList').innerHTML = [
+          { horizon: 'Hari Ini', text: topContent ? `Review performa ID Konten ${topContent.id} (${formatIDR(topContent.validComm)}) dan pantau ${formatIDR(pendingTotal)} komisi pending.` : `Pantau ${formatIDR(pendingTotal)} komisi yang masih dalam proses.` },
+          { horizon: 'Minggu Ini', text: topByComm ? `Buat 2–3 variasi konten untuk "${topByComm.name.slice(0, 48)}…" dan uji alternatif produk ber-rate lebih tinggi untuk volume kecil.` : 'Uji variasi konten pada produk dengan rasio sukses tertinggi.' },
+          { horizon: 'Jangka Panjang', text: 'Diversifikasi produk dan ID konten agar tidak bergantung pada satu sumber trafik, serta bandingkan laporan bulanan secara rutin.' },
+        ].map(a => `
+          <div class="p-3.5 rounded-2xl subtle-box flex items-start gap-3">
+            <span class="px-2.5 py-1 rounded-lg bg-[#111214] dark:bg-white text-white dark:text-[#111214] text-[10px] font-bold uppercase shrink-0">${a.horizon}</span>
+            <p class="text-xs leading-relaxed">${escapeHtml(a.text)}</p>
+          </div>
+        `).join('');
+
+        // Forecasting (only if >= 7 days)
+        const dailyMap = new Map();
+        data.forEach(r => {
+          if (!r.orderDateIso) return;
+          if (!dailyMap.has(r.orderDateIso)) dailyMap.set(r.orderDateIso, { gmv: 0, units: 0, comm: 0, orders: new Set() });
+          const d = dailyMap.get(r.orderDateIso);
+          d.gmv += r.gmv; d.units += r.units; d.orders.add(r.orderId);
+          if (r.statusKey !== 'INELIGIBLE') d.comm += (r.statusKey === 'PAID' ? r.finalEarned : r.estComm);
+        });
+        const sortedDays = Array.from(dailyMap.keys()).sort();
+        const fBox = document.getElementById('forecastBox');
+        const fNote = document.getElementById('forecastMethodNote');
+        if (sortedDays.length < 7) {
+          fBox.innerHTML = `<div class="p-4 rounded-2xl subtle-box text-xs muted-text">Data historis saat ini hanya mencakup <strong>${sortedDays.length} hari</strong>. Minimal 7 hari data diperlukan agar estimasi proyeksi tidak menyesatkan.</div>`;
+          fNote.textContent = 'Sistem tidak membuat proyeksi tanpa histori harian yang memadai.';
+        } else {
+          const n = sortedDays.length;
+          const avgGmv = sortedDays.reduce((s, k) => s + dailyMap.get(k).gmv, 0) / n;
+          const avgUnits = sortedDays.reduce((s, k) => s + dailyMap.get(k).units, 0) / n;
+          const avgComm = sortedDays.reduce((s, k) => s + dailyMap.get(k).comm, 0) / n;
+          const avgOrders = sortedDays.reduce((s, k) => s + dailyMap.get(k).orders.size, 0) / n;
+          fBox.innerHTML = `
+            <div class="grid grid-cols-2 gap-2.5 text-xs">
+              <div class="p-3 rounded-xl subtle-box"><p class="muted-text text-[10px] uppercase">Est. Komisi 7H</p><p class="num text-base font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">${formatIDR(avgComm * 7)}</p></div>
+              <div class="p-3 rounded-xl subtle-box"><p class="muted-text text-[10px] uppercase">Est. GMV 7H</p><p class="num text-base font-bold mt-0.5">${formatCompactIDR(avgGmv * 7)}</p></div>
+              <div class="p-3 rounded-xl subtle-box"><p class="muted-text text-[10px] uppercase">Est. Unit 7H</p><p class="num text-base font-bold mt-0.5">${formatNum(avgUnits * 7)} unit</p></div>
+              <div class="p-3 rounded-xl subtle-box"><p class="muted-text text-[10px] uppercase">Est. Pesanan 7H</p><p class="num text-base font-bold mt-0.5">${formatNum(avgOrders * 7)}</p></div>
+            </div>
+          `;
+          fNote.textContent = `Metode: rata-rata harian historis (${n} hari aktif: ${formatDateDisplay(parseDateValue(sortedDays[0]))} – ${formatDateDisplay(parseDateValue(sortedDays[n - 1]))}) dikalikan 7 hari. Hasil dapat berubah mengikuti promo & algoritma.`;
+        }
+      }
+
+      // --- Orders Explorer ---
+      function renderOrdersTab(data) {
+        const q = state.orderSearch.trim().toLowerCase();
+        let list = data.filter(r => !q || r.orderId.toLowerCase().includes(q) || r.skuId.toLowerCase().includes(q) || r.productName.toLowerCase().includes(q) || r.shopName.toLowerCase().includes(q) || r.contentId.toLowerCase().includes(q));
+        const s = state.orderSort;
+        list = [...list].sort((a, b) => {
+          if (s === 'date_desc') return (b.orderDate?.getTime() || 0) - (a.orderDate?.getTime() || 0);
+          if (s === 'date_asc') return (a.orderDate?.getTime() || 0) - (b.orderDate?.getTime() || 0);
+          if (s === 'comm_desc') return (b.finalEarned || b.estComm) - (a.finalEarned || a.estComm);
+          if (s === 'gmv_desc') return b.gmv - a.gmv;
+          if (s === 'units_desc') return b.units - a.units;
+          return 0;
+        });
+        const totalPages = Math.max(1, Math.ceil(list.length / state.orderPageSize));
+        if (state.orderPage > totalPages) state.orderPage = totalPages;
+        const pageItems = list.slice((state.orderPage - 1) * state.orderPageSize, state.orderPage * state.orderPageSize);
+
+        document.getElementById('orderCountLabel').textContent = `${formatNum(list.length)} baris pesanan`;
+        document.getElementById('paginationInfo').textContent = `Halaman ${state.orderPage} / ${totalPages}`;
+        document.getElementById('btnPrevPage').disabled = state.orderPage <= 1;
+        document.getElementById('btnNextPage').disabled = state.orderPage >= totalPages;
+
+        document.getElementById('orderTableBody').innerHTML = pageItems.map(r => `
+          <tr class="hover:bg-[var(--bg-subtle)]">
+            <td class="py-3 pr-3 whitespace-nowrap"><p class="font-semibold">${formatDateTimeDisplay(r.orderDate)}</p><p class="num text-[11px] subtle-text">${escapeHtml(r.orderId)}</p></td>
+            <td class="py-3 px-2 max-w-xs"><p class="font-medium line-clamp-1">${escapeHtml(r.productName)}</p><p class="text-[11px] muted-text">${escapeHtml(r.shopName)} • ${escapeHtml(r.rateStr || '-')}</p></td>
+            <td class="py-3 px-2 whitespace-nowrap"><span class="inline-flex px-2 py-0.5 rounded-md text-[11px] font-semibold border ${STATUS_META[r.statusKey].badge}">${escapeHtml(r.statusRaw)}</span></td>
+            <td class="py-3 px-2 text-right num font-bold">${formatNum(r.units)}</td>
+            <td class="py-3 px-2 text-right num muted-text whitespace-nowrap">${formatIDR(r.gmv)}</td>
+            <td class="py-3 px-2 text-right num font-bold whitespace-nowrap ${r.statusKey === 'PAID' ? 'text-emerald-700 dark:text-emerald-400' : 'subtle-text'}">${formatIDR(r.finalEarned)}</td>
+            <td class="py-3 pl-2 text-right"><button type="button" data-row-num="${r.rowNum}" class="order-detail-btn h-8 px-3 rounded-lg text-xs font-semibold subtle-box hover:opacity-80">Detail</button></td>
+          </tr>
+        `).join('') || `<tr><td colspan="7" class="py-8 text-center muted-text">Tidak ada pesanan yang cocok.</td></tr>`;
+      }
+
+      // --- Radar Promo (Dynamic Runtime Calculation + Honest Verification Labels) ---
+      function buildUpcomingCampaigns(now) {
+        const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+        const list = [];
+
+        // Payday (25th every month)
+        let payday = new Date(y, m, 25);
+        if (d > 27) payday = new Date(y, m + 1, 25);
+        list.push({
+          id: 'payday', name: 'Promo Gajian / Payday Sale', platform: 'TikTok Shop & Shopee ID',
+          date: payday, endDate: new Date(payday.getFullYear(), payday.getMonth(), payday.getDate() + 3),
+          isLive: d >= 25 && d <= 27,
+          status: 'Perkiraan Berdasarkan Pola Tahunan',
+          desc: 'Periode belanja bulanan pasca gajian. Pembeli cenderung membeli produk dengan nominal lebih besar.',
+          basis: 'Pola kampanye rutin tanggal 25–akhir bulan di marketplace Indonesia.',
+        });
+
+        // Next Double Date (1.1 - 12.12)
+        for (let off = 0; off <= 12; off++) {
+          const tm = (m + off) % 12, ty = y + Math.floor((m + off) / 12);
+          const cand = new Date(ty, tm, tm + 1);
+          if (cand.getTime() + 86400000 > now.getTime()) {
+            const num = tm + 1;
+            const is1212 = num === 12;
+            list.push({
+              id: 'double1', name: is1212 ? `Harbolnas 12.12 (${ty})` : `Promo Tanggal Kembar ${num}.${num} (${ty})`,
+              platform: 'TikTok Shop, Tokopedia & Shopee',
+              date: cand, endDate: new Date(ty, tm, num + 1),
+              isLive: toIsoDate(cand) === toIsoDate(now),
+              status: 'Perkiraan Berdasarkan Pola Tahunan',
+              desc: is1212 ? 'Puncak belanja akhir tahun dengan voucher & gratis ongkir besar. Siapkan konten H-3.' : 'Kampanye bulanan tanggal kembar dengan lonjakan checkout mulai 00:00 WIB.',
+              basis: 'Pola tahunan kampanye tanggal kembar & Harbolnas di Indonesia.',
+            });
+            break;
+          }
+        }
+
+        // Next Year 1.1 New Year Sale
+        const jan1 = new Date(m === 0 && d <= 2 ? y : y + 1, 0, 1);
+        if (!list.some(x => toIsoDate(x.date) === toIsoDate(jan1))) {
+          list.push({
+            id: 'newyear', name: `New Year Sale 1.1 (${jan1.getFullYear()})`,
+            platform: 'Marketplace Indonesia',
+            date: jan1, endDate: new Date(jan1.getFullYear(), 0, 3),
+            isLive: toIsoDate(jan1) === toIsoDate(now),
+            status: 'Perkiraan Berdasarkan Pola Tahunan',
+            desc: 'Momentum awal tahun untuk produk dekorasi, perlengkapan rumah, dan kebutuhan baru.',
+            basis: 'Pola kampanye awal tahun marketplace Indonesia.',
+          });
+        }
+
+        return list.sort((a, b) => a.date.getTime() - b.date.getTime());
+      }
+
+      async function fetchLiveHolidays() {
+        const statusEl = document.getElementById('radarApiStatus');
+        const srcEl = document.getElementById('holidaySourceText');
+        const fallback = [
+          { date: '2026-12-25', localName: 'Hari Raya Natal', verified: false },
+          { date: '2027-01-01', localName: 'Tahun Baru Masehi', verified: false },
+          { date: '2027-02-06', localName: 'Tahun Baru Imlek', verified: false },
+          { date: '2027-03-09', localName: 'Hari Suci Nyepi', verified: false },
+        ];
+        try {
+          const resp = await fetch('https://date.nager.at/api/v3/NextPublicHolidays/ID');
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          const json = await resp.json();
+          if (Array.isArray(json) && json.length) {
+            state.holidays = json.slice(0, 6).map(h => ({ date: h.date, localName: h.localName || h.name, verified: true }));
+            statusEl.textContent = 'Terhubung Live • Nager.Date API (Gratis)';
+            srcEl.textContent = 'Sumber: Live API date.nager.at (Terkonfirmasi Resmi)';
+            document.getElementById('radarLastUpdated').textContent = `Terakhir diperbarui: ${formatDateTimeDisplay(new Date())}`;
+            renderHolidayList();
+            return;
+          }
+          throw new Error('Empty');
+        } catch (_) {
+          state.holidays = fallback;
+          statusEl.textContent = 'Mode Kalender Cadangan (Offline)';
+          srcEl.textContent = 'Kalender cadangan lokal (API eksternal tidak terjangkau)';
+          document.getElementById('radarLastUpdated').textContent = `Diperbarui (mode lokal): ${formatDateTimeDisplay(new Date())}`;
+          renderHolidayList();
+        }
+      }
+
+      function renderHolidayList() {
+        const now = new Date();
+        document.getElementById('holidayList').innerHTML = state.holidays.map(h => {
+          const dt = parseDateValue(h.date);
+          const days = dt ? Math.ceil((dt.getTime() - now.getTime()) / 86400000) : 0;
+          return `
+            <div class="flex items-center justify-between gap-3 p-3 rounded-2xl subtle-box">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <p class="text-xs sm:text-sm font-bold truncate">${escapeHtml(h.localName)}</p>
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${h.verified ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'}">${h.verified ? 'Terkonfirmasi Resmi' : 'Perkiraan'}</span>
+                </div>
+                <p class="text-[11px] muted-text mt-0.5">${formatLongDateId(dt)}</p>
+              </div>
+              <span class="num shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold card-surface">${days <= 0 ? 'Hari Ini' : `H-${days}`}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderRadarCampaigns() {
+        const now = new Date();
+        state.promoEvents = buildUpcomingCampaigns(now);
+        document.getElementById('radarPromoGrid').innerHTML = state.promoEvents.map(ev => {
+          const days = Math.max(0, Math.ceil((ev.date.getTime() - now.getTime()) / 86400000));
+          return `
+            <div class="card-surface card-hover rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400">${escapeHtml(ev.status)}</span>
+                  <span class="num text-[11px] font-bold ${ev.isLive || days <= 3 ? 'text-emerald-700 dark:text-emerald-400' : 'muted-text'}">${ev.isLive ? 'BERLANGSUNG' : `H-${days}`}</span>
+                </div>
+                <h3 class="text-sm font-bold mt-3">${escapeHtml(ev.name)}</h3>
+                <p class="text-[11px] muted-text mt-0.5">${escapeHtml(ev.platform)} • ${formatLongDateId(ev.date)}</p>
+                <p class="text-xs muted-text mt-2.5 leading-relaxed">${escapeHtml(ev.desc)}</p>
+                <p class="text-[10px] subtle-text mt-2">Basis: ${escapeHtml(ev.basis)}</p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-[var(--border-hairline)]">
+                <p class="text-[10px] uppercase tracking-wider subtle-text font-semibold">Hitung Mundur</p>
+                <p data-cd="${ev.id}" class="num text-xs sm:text-sm font-bold mt-0.5">-</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+        tickClock();
+      }
+
+      function tickClock() {
+        const now = new Date();
+        const el = document.getElementById('radarLiveClock');
+        if (el) el.textContent = `${formatLongDateId(now)} • ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        state.promoEvents.forEach(ev => {
+          const cd = document.querySelector(`[data-cd="${ev.id}"]`);
+          if (!cd) return;
+          if (ev.isLive) { cd.textContent = 'SEDANG BERLANGSUNG'; return; }
+          const diff = Math.max(0, ev.date.getTime() - now.getTime());
+          const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+          cd.textContent = `${String(d).padStart(2, '0')}h : ${String(h).padStart(2, '0')}j : ${String(m).padStart(2, '0')}m : ${String(s).padStart(2, '0')}d`;
+        });
+      }
+
+      // --- Mapping Modal ---
+      function openMappingModal() {
+        if (!state.hasData) return;
+        const q = state.quality;
+        document.getElementById('qualityAuditBox').innerHTML = [
+          { l: 'Baris Mentah', v: formatNum(q.rawRowCount) },
+          { l: 'Baris Valid', v: formatNum(q.validRowCount) },
+          { l: 'Duplikat Eksak', v: formatNum(q.exactDuplicates) },
+          { l: 'Pesanan Unik', v: formatNum(q.uniqueOrderCount) },
+        ].map(x => `<div class="p-3 rounded-xl subtle-box"><p class="text-[10px] uppercase muted-text">${x.l}</p><p class="num text-base font-bold mt-0.5">${x.v}</p></div>`).join('');
+
+        document.getElementById('dedupNoteBox').innerHTML = `<strong>Logika Anti-Duplikat:</strong> Laporan ini memiliki ${formatNum(q.validRowCount)} baris item dari ${formatNum(q.uniqueOrderCount)} ID pesanan unik. Baris dengan ID pesanan sama namun SKU/produk berbeda tetap dipertahankan; hanya baris identik penuh yang disaring (${formatNum(q.exactDuplicates)} baris). Baris kosong diabaikan: ${formatNum(q.emptyRows)}.`;
+
+        const options = '<option value="-1">— Tidak Dipetakan —</option>' +
+          state.rawHeaders.map((h, i) => `<option value="${i}">${escapeHtml(h || `Kolom ${i + 1}`)}</option>`).join('');
+
+        document.getElementById('mappingFieldsGrid').innerHTML = SCHEMA_FIELDS.slice(0, 18).map(f => `
+          <div>
+            <label class="block text-[11px] font-semibold muted-text mb-1">${escapeHtml(f.label)}</label>
+            <select data-map-key="${f.key}" class="map-select w-full h-9 rounded-xl subtle-box px-2.5 text-xs">${options}</select>
+          </div>
+        `).join('');
+        document.querySelectorAll('.map-select').forEach(sel => {
+          sel.value = String(state.colMap[sel.dataset.mapKey] ?? -1);
+        });
+        toggleModal('mappingModal', true);
+      }
+
+      // --- Exports (Excel, CSV, PDF) ---
+      function exportWorkbookXlsx() {
+        if (!state.hasData) return;
+        const wb = XLSX.utils.book_new();
+        const data = state.filteredRecords;
+        const prods = aggregateProducts(data).sort((a, b) => b.units - a.units);
+
+        // Sheet 1: Ringkasan
+        const paid = data.reduce((s, r) => s + r.finalEarned, 0);
+        const proc = data.filter(r => r.statusKey === 'PROCESSING').reduce((s, r) => s + r.estComm, 0);
+        const unp = data.filter(r => r.statusKey === 'UNPAID').reduce((s, r) => s + r.estComm, 0);
+        const inel = data.filter(r => r.statusKey === 'INELIGIBLE').reduce((s, r) => s + r.estComm, 0);
+        const gmv = data.reduce((s, r) => s + r.gmv, 0);
+        const units = data.reduce((s, r) => s + r.units, 0);
+        const summarySheet = XLSX.utils.aoa_to_sheet([
+          ['Laporan Analisis Affiliate — AffiliTrack Studio'],
+          ['File Sumber', state.fileName],
+          ['Rentang Tanggal', `${state.filters.dateFrom || '-'} s/d ${state.filters.dateTo || '-'}`],
+          ['Jumlah Baris Terfilter', data.length],
+          [],
+          ['Metrik', 'Nilai (IDR / Jumlah)'],
+          ['Total GMV', Math.round(gmv)],
+          ['Komisi Sudah Dibayar (Aktual)', Math.round(paid)],
+          ['Komisi Sedang Diproses (Est.)', Math.round(proc)],
+          ['Komisi Belum Dibayar (Est.)', Math.round(unp)],
+          ['Komisi Tidak Memenuhi Syarat (Est.)', Math.round(inel)],
+          ['Total Unit Terjual', units],
+        ]);
+        XLSX.utils.book_append_sheet(wb, summarySheet, 'Ringkasan');
+
+        // Sheet 2: Produk
+        const prodRows = [['Nama Produk', 'Toko', 'Rate', 'Pesanan', 'Unit', 'Refund', 'GMV', 'Komisi Cair', 'Komisi Pending', 'Total Valid']];
+        prods.forEach(p => prodRows.push([p.name, p.shop, p.rateStr, p.orders.size, p.units, p.refunds, Math.round(p.gmv), Math.round(p.paidComm), Math.round(p.pendingComm), Math.round(p.validComm)]));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(prodRows), 'Produk');
+
+        // Sheet 3: Business Insights
+        const recRows = [['Prioritas', 'Judul', 'Temuan', 'Saran Aksi', 'Kepercayaan', 'Bukti']];
+        state.recommendations.forEach(r => recRows.push([r.priority, r.title, r.detected, r.action, r.confidence, r.evidence]));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(recRows), 'Business Insights');
+
+        XLSX.writeFile(wb, `analisis_affiliate_${toIsoDate(new Date())}.xlsx`);
+        toggleModal('exportModal', false);
+        showToast('Workbook Excel (.xlsx) berhasil diunduh.', 'success');
+      }
+
+      function exportCsv() {
+        if (!state.hasData) return;
+        const prods = aggregateProducts(state.filteredRecords).sort((a, b) => b.units - a.units);
+        const lines = [
+          `"File Sumber","${state.fileName}"`,
+          `"Periode","${state.filters.dateFrom || '-'} s/d ${state.filters.dateTo || '-'}"`,
+          '',
+          'Nama Produk,Toko,Rate,Pesanan,Unit,Refund,GMV (IDR),Komisi Cair (IDR),Komisi Pending (IDR),Total Valid (IDR)'
+        ];
+        prods.forEach(p => lines.push([`"${p.name.replace(/"/g, '""')}"`, `"${p.shop.replace(/"/g, '""')}"`, `"${p.rateStr}"`, p.orders.size, p.units, p.refunds, Math.round(p.gmv), Math.round(p.paidComm), Math.round(p.pendingComm), Math.round(p.validComm)].join(',')));
+        const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = `ringkasan_affiliate_${toIsoDate(new Date())}.csv`;
+        document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        toggleModal('exportModal', false);
+        showToast('File CSV berhasil diunduh.', 'success');
+      }
+
+      // --- UI Helpers ---
+      function switchTab(tab) {
+        if (!state.hasData && tab !== 'radar' && tab !== 'overview') {
+          showToast('Upload laporan affiliate terlebih dahulu untuk membuka tab ini.', 'info');
+          tab = 'overview';
+        }
+        state.activeTab = tab;
+        document.querySelectorAll('.nav-tab, .mobile-tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab ? 'true' : 'false'));
+        if (!state.hasData) {
+          document.getElementById('emptyStateView').classList.toggle('hidden', tab === 'radar');
+          document.getElementById('tab-radar').classList.toggle('hidden', tab !== 'radar');
+        } else {
+          document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('hidden', p.id !== `tab-${tab}`));
+          Object.values(state.charts).forEach(ch => ch && ch.resize());
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function toggleModal(id, open) {
+        const el = document.getElementById(id);
+        el.classList.toggle('hidden', !open);
+        el.classList.toggle('flex', open);
+      }
+
+      function updatePresetButtons(active) {
+        document.querySelectorAll('.preset-btn').forEach(b => {
+          const act = b.dataset.preset === active;
+          b.className = act ? 'preset-btn px-2.5 py-1 rounded-lg font-semibold bg-[var(--bg-surface)] shadow-xs' : 'preset-btn px-2.5 py-1 rounded-lg font-medium muted-text';
+        });
+      }
+
+      function handleFileUpload(file) {
+        if (!file) return;
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        if (!['xlsx', 'xls', 'csv'].includes(ext)) { showToast('Format tidak didukung. Pilih file .xlsx, .xls, atau .csv.', 'error'); return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+          try {
+            const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', raw: false });
+            const matrix = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
+            if (matrix.length < 2) { showToast('File kosong atau hanya berisi header.', 'error'); return; }
+            activateReport(matrix[0], matrix.slice(1), file.name, null, true);
+          } catch (_) {
+            showToast('Gagal membaca file. Pastikan file Excel/CSV valid dan tidak terproteksi password.', 'error');
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
+
+      function applyTheme(dark) {
+        document.documentElement.classList.toggle('dark', dark);
+        const icon = document.getElementById('themeIcon');
+        if (icon) { icon.setAttribute('data-lucide', dark ? 'sun' : 'moon'); if (window.lucide) lucide.createIcons(); }
+        try { localStorage.setItem(STORAGE_THEME_KEY, dark ? 'dark' : 'light'); } catch (_) {}
+        if (state.hasData) renderDashboard();
+      }
+
+      function bindEvents() {
+        const fileInput = document.getElementById('fileInput');
+        fileInput.addEventListener('change', e => { if (e.target.files?.[0]) handleFileUpload(e.target.files[0]); e.target.value = ''; });
+        document.getElementById('btnUploadTrigger').addEventListener('click', () => fileInput.click());
+
+        const ez = document.getElementById('emptyDropZone');
+        ez.addEventListener('click', () => fileInput.click());
+        ez.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+
+        // Global Drag & Drop
+        let dragCnt = 0;
+        const overlay = document.getElementById('globalDropOverlay');
+        window.addEventListener('dragenter', e => { e.preventDefault(); dragCnt++; overlay.classList.remove('hidden'); overlay.classList.add('flex'); });
+        window.addEventListener('dragover', e => e.preventDefault());
+        window.addEventListener('dragleave', e => { e.preventDefault(); dragCnt--; if (dragCnt <= 0) { dragCnt = 0; overlay.classList.add('hidden'); overlay.classList.remove('flex'); } });
+        window.addEventListener('drop', e => {
+          e.preventDefault(); dragCnt = 0; overlay.classList.add('hidden'); overlay.classList.remove('flex');
+          if (e.dataTransfer?.files?.[0]) handleFileUpload(e.dataTransfer.files[0]);
+        });
+
+        // Theme toggle
+        document.getElementById('btnThemeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
+
+        // Remember opt-in checkbox
+        const chk = document.getElementById('chkRememberLast');
+        try { chk.checked = localStorage.getItem(STORAGE_REMEMBER_KEY) === 'true'; } catch (_) {}
+        chk.addEventListener('change', e => {
+          try {
+            localStorage.setItem(STORAGE_REMEMBER_KEY, e.target.checked ? 'true' : 'false');
+            if (!e.target.checked) localStorage.removeItem(STORAGE_LAST_REPORT_KEY);
+          } catch (_) {}
+        });
+
+        // Tabs & Navigation
+        document.querySelectorAll('.nav-tab, .mobile-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+        document.getElementById('btnEmptyGoRadar').addEventListener('click', () => switchTab('radar'));
+        document.getElementById('btnJumpToInsights').addEventListener('click', () => switchTab('insights'));
+
+        // Reset Data Analisis Modal
+        document.getElementById('btnResetData').addEventListener('click', () => toggleModal('resetModal', true));
+        document.getElementById('btnCancelReset').addEventListener('click', () => toggleModal('resetModal', false));
+        document.getElementById('btnConfirmReset').addEventListener('click', executeFullReset);
+        document.getElementById('resetModal').addEventListener('click', e => { if (e.target.id === 'resetModal') toggleModal('resetModal', false); });
+
+        // Mapping Modal
+        document.getElementById('btnOpenMapping').addEventListener('click', openMappingModal);
+        document.getElementById('btnCloseMapping').addEventListener('click', () => toggleModal('mappingModal', false));
+        document.getElementById('btnCancelMapping').addEventListener('click', () => toggleModal('mappingModal', false));
+        document.getElementById('btnApplyMapping').addEventListener('click', () => {
+          const newMap = { ...state.colMap };
+          document.querySelectorAll('.map-select').forEach(s => newMap[s.dataset.mapKey] = parseInt(s.value, 10));
+          toggleModal('mappingModal', false);
+          activateReport(state.rawHeaders, state.rawMatrix, state.fileName, newMap, false);
+        });
+
+        // Export Modal
+        document.getElementById('btnOpenExport').addEventListener('click', () => {
+          document.getElementById('exportScopeText').textContent = `${formatNum(state.filteredRecords.length)} baris • ${state.filters.dateFrom || '-'} s/d ${state.filters.dateTo || '-'}`;
+          toggleModal('exportModal', true);
+        });
+        document.getElementById('btnCloseExport').addEventListener('click', () => toggleModal('exportModal', false));
+        document.getElementById('exportModal').addEventListener('click', e => { if (e.target.id === 'exportModal') toggleModal('exportModal', false); });
+        document.getElementById('btnDoExportXlsx').addEventListener('click', exportWorkbookXlsx);
+        document.getElementById('btnDoExportCsv').addEventListener('click', exportCsv);
+        document.getElementById('btnDoExportPdf').addEventListener('click', () => { toggleModal('exportModal', false); setTimeout(() => window.print(), 150); });
+
+        // Filters
+        const resetFilters = () => {
+          const ds = state.records.map(r => r.orderDateIso).filter(Boolean).sort();
+          state.filters = { dateFrom: ds[0] || '', dateTo: ds[ds.length - 1] || '', status: 'ALL', shop: 'ALL', contentType: 'ALL', preset: 'ALL' };
+          updatePresetButtons('ALL');
+          applyFiltersAndRender();
+        };
+        document.getElementById('filterDateFrom').addEventListener('change', e => { state.filters.dateFrom = e.target.value; state.filters.preset = ''; updatePresetButtons(''); applyFiltersAndRender(); });
+        document.getElementById('filterDateTo').addEventListener('change', e => { state.filters.dateTo = e.target.value; state.filters.preset = ''; updatePresetButtons(''); applyFiltersAndRender(); });
+        document.getElementById('filterStatus').addEventListener('change', e => { state.filters.status = e.target.value; applyFiltersAndRender(); });
+        document.getElementById('filterShop').addEventListener('change', e => { state.filters.shop = e.target.value; applyFiltersAndRender(); });
+        document.getElementById('filterContentType').addEventListener('change', e => { state.filters.contentType = e.target.value; applyFiltersAndRender(); });
+        document.getElementById('btnResetFilters').addEventListener('click', resetFilters);
+        document.getElementById('btnMobileReset').addEventListener('click', resetFilters);
+
+        document.querySelectorAll('.preset-btn').forEach(btn => btn.addEventListener('click', () => {
+          const p = btn.dataset.preset;
+          const ds = state.records.map(r => r.orderDateIso).filter(Boolean).sort();
+          const minD = ds[0] || '', maxD = ds[ds.length - 1] || '';
+          if (p === 'ALL' || !maxD) { state.filters.dateFrom = minD; state.filters.dateTo = maxD; }
+          else {
+            const days = p === '7D' ? 6 : p === '14D' ? 13 : 29;
+            state.filters.dateFrom = toIsoDate(new Date(parseDateValue(maxD).getTime() - days * 86400000));
+            state.filters.dateTo = maxD;
+          }
+          state.filters.preset = p; updatePresetButtons(p); applyFiltersAndRender();
+        }));
+
+        // Mobile Filter Sheet
+        document.getElementById('btnOpenFilterSheet').addEventListener('click', () => toggleModal('mobileFilterModal', true));
+        document.getElementById('btnCloseFilterSheet').addEventListener('click', () => toggleModal('mobileFilterModal', false));
+        document.getElementById('btnMobileSheetReset').addEventListener('click', () => { resetFilters(); toggleModal('mobileFilterModal', false); });
+        document.getElementById('btnMobileSheetApply').addEventListener('click', () => {
+          state.filters.dateFrom = document.getElementById('mFilterDateFrom').value;
+          state.filters.dateTo = document.getElementById('mFilterDateTo').value;
+          state.filters.status = document.getElementById('mFilterStatus').value;
+          state.filters.shop = document.getElementById('mFilterShop').value;
+          state.filters.contentType = document.getElementById('mFilterContentType').value;
+          state.filters.preset = '';
+          toggleModal('mobileFilterModal', false);
+          applyFiltersAndRender();
+        });
+
+        // Chart & Table Controls
+        document.getElementById('trendMetric').addEventListener('change', e => { state.trendMetric = e.target.value; renderTrendChart(state.filteredRecords); });
+        document.querySelectorAll('.gran-btn').forEach(b => b.addEventListener('click', () => {
+          state.trendGranularity = b.dataset.gran;
+          document.querySelectorAll('.gran-btn').forEach(x => x.className = x.dataset.gran === state.trendGranularity ? 'gran-btn px-2.5 py-1 rounded-lg font-semibold bg-[var(--bg-surface)] shadow-xs' : 'gran-btn px-2.5 py-1 rounded-lg font-medium muted-text');
+          renderTrendChart(state.filteredRecords);
+        }));
+        document.querySelectorAll('.time-btn').forEach(b => b.addEventListener('click', () => {
+          state.timePatternMode = b.dataset.timemode;
+          document.querySelectorAll('.time-btn').forEach(x => x.className = x.dataset.timemode === state.timePatternMode ? 'time-btn px-3 py-1 rounded-lg font-semibold bg-[var(--bg-surface)] shadow-xs' : 'time-btn px-3 py-1 rounded-lg font-medium muted-text');
+          renderTimePatternChart(state.filteredRecords);
+        }));
+        document.getElementById('productChartMetric').addEventListener('change', e => { state.productChartMetric = e.target.value; renderProductsAndShops(state.filteredRecords); });
+        document.getElementById('productSearch').addEventListener('input', e => { state.productSearch = e.target.value; renderProductsAndShops(state.filteredRecords); });
+        document.getElementById('orderSearch').addEventListener('input', e => { state.orderSearch = e.target.value; state.orderPage = 1; renderOrdersTab(state.filteredRecords); });
+        document.getElementById('orderSort').addEventListener('change', e => { state.orderSort = e.target.value; state.orderPage = 1; renderOrdersTab(state.filteredRecords); });
+        document.getElementById('btnPrevPage').addEventListener('click', () => { if (state.orderPage > 1) { state.orderPage--; renderOrdersTab(state.filteredRecords); } });
+        document.getElementById('btnNextPage').addEventListener('click', () => { state.orderPage++; renderOrdersTab(state.filteredRecords); });
+        document.getElementById('btnRefreshHolidays').addEventListener('click', () => { showToast('Menyegarkan data hari libur...', 'info'); fetchLiveHolidays(); });
+
+        // Drilldowns (Orders, Products, Shops, Content IDs, Recommendation Evidence)
+        document.getElementById('orderTableBody').addEventListener('click', e => {
+          const btn = e.target.closest('.order-detail-btn');
+          if (!btn) return;
+          const rec = state.records.find(r => r.rowNum === parseInt(btn.dataset.rowNum, 10));
+          if (!rec) return;
+          document.getElementById('modalTitle').textContent = `Pesanan #${rec.orderId}`;
+          document.getElementById('modalSubtitle').textContent = `${rec.shopName} • ${formatDateTimeDisplay(rec.orderDate)} • ${rec.statusRaw}`;
+          document.getElementById('modalBody').innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${Object.entries(rec.raw).map(([k, v]) => `<div class="p-3 rounded-xl subtle-box"><p class="text-[10px] font-bold uppercase subtle-text">${escapeHtml(k)}</p><p class="font-semibold mt-0.5 break-words">${escapeHtml(v)}</p></div>`).join('')}</div>`;
+          toggleModal('detailModal', true);
+        });
+
+        document.getElementById('productTableBody').addEventListener('click', e => {
+          const row = e.target.closest('.prod-row');
+          if (!row) return;
+          const key = row.dataset.prodKey;
+          const matches = state.filteredRecords.filter(r => (r.productId || r.productName) === key);
+          if (!matches.length) return;
+          document.getElementById('modalTitle').textContent = matches[0].productName;
+          document.getElementById('modalSubtitle').textContent = `${matches[0].shopName} • ${formatNum(matches.length)} baris transaksi`;
+          document.getElementById('modalBody').innerHTML = matches.slice(0, 30).map(r => `
+            <div class="p-3 rounded-xl subtle-box flex items-center justify-between gap-2">
+              <div class="min-w-0"><p class="font-semibold">${formatDateTimeDisplay(r.orderDate)} • <span class="num">${escapeHtml(r.orderId)}</span></p><p class="text-[11px] muted-text">${escapeHtml(r.statusRaw)} • ${formatNum(r.units)} unit</p></div>
+              <div class="text-right shrink-0"><p class="num font-bold text-emerald-700 dark:text-emerald-400">${formatIDR(r.finalEarned || r.estComm)}</p><p class="num text-[10px] muted-text">GMV ${formatCompactIDR(r.gmv)}</p></div>
+            </div>
+          `).join('');
+          toggleModal('detailModal', true);
+        });
+
+        document.getElementById('shopTableBody').addEventListener('click', e => {
+          const btn = e.target.closest('.shop-jump-btn');
+          if (!btn) return;
+          state.filters.shop = btn.dataset.shopJump;
+          applyFiltersAndRender();
+          showToast(`Dashboard difilter ke toko: ${btn.dataset.shopJump}`, 'info');
+        });
+
+        document.getElementById('contentTableBody').addEventListener('click', e => {
+          const row = e.target.closest('.cid-row');
+          if (!row) return;
+          const cid = row.dataset.cidDetail;
+          const matches = state.filteredRecords.filter(r => r.contentId === cid);
+          const prods = aggregateProducts(matches).sort((a, b) => b.validComm - a.validComm);
+          document.getElementById('modalTitle').textContent = `ID Konten: ${cid}`;
+          document.getElementById('modalSubtitle').textContent = `${matches.length} baris • ${prods.length} produk terkait`;
+          document.getElementById('modalBody').innerHTML = prods.map(p => `
+            <div class="p-3 rounded-xl subtle-box flex items-center justify-between gap-3">
+              <div class="min-w-0"><p class="font-semibold line-clamp-2">${escapeHtml(p.name)}</p><p class="text-[11px] muted-text">${escapeHtml(p.shop)} • ${formatNum(p.units)} unit</p></div>
+              <p class="num font-bold text-emerald-700 dark:text-emerald-400 shrink-0">${formatIDR(p.validComm)}</p>
+            </div>
+          `).join('');
+          toggleModal('detailModal', true);
+        });
+
+        document.getElementById('recommendationsList').addEventListener('click', e => {
+          const btn = e.target.closest('.rec-evidence-btn');
+          if (!btn) return;
+          const r = state.recommendations[parseInt(btn.dataset.recIdx, 10)];
+          if (!r) return;
+          document.getElementById('modalTitle').textContent = r.title;
+          document.getElementById('modalSubtitle').textContent = `Prioritas ${r.priority} • Tingkat Kepercayaan: ${r.confidence} • Mesin Aturan Lokal`;
+          document.getElementById('modalBody').innerHTML = `
+            <div class="p-3.5 rounded-2xl subtle-box"><p class="text-[10px] font-bold uppercase subtle-text">Temuan</p><p class="mt-1 leading-relaxed">${escapeHtml(r.detected)}</p></div>
+            <div class="p-3.5 rounded-2xl subtle-box"><p class="text-[10px] font-bold uppercase subtle-text">Bukti &amp; Perhitungan</p><p class="num text-xs mt-1 leading-relaxed">${escapeHtml(r.evidence)}</p></div>
+            <div class="p-3.5 rounded-2xl subtle-box"><p class="text-[10px] font-bold uppercase subtle-text">Mengapa Penting</p><p class="mt-1 leading-relaxed">${escapeHtml(r.why)}</p></div>
+            <div class="p-3.5 rounded-2xl subtle-box"><p class="text-[10px] font-bold uppercase subtle-text">Langkah Konkret &amp; Potensi Manfaat</p><p class="mt-1 leading-relaxed"><strong>Aksi:</strong> ${escapeHtml(r.action)}<br/><strong>Potensi:</strong> ${escapeHtml(r.benefit)}</p></div>
+          `;
+          toggleModal('detailModal', true);
+        });
+
+        document.getElementById('btnCloseModal').addEventListener('click', () => toggleModal('detailModal', false));
+        document.getElementById('detailModal').addEventListener('click', e => { if (e.target.id === 'detailModal') toggleModal('detailModal', false); });
+        document.addEventListener('keydown', e => {
+          if (e.key === 'Escape') ['detailModal', 'resetModal', 'mappingModal', 'exportModal', 'mobileFilterModal'].forEach(id => toggleModal(id, false));
+        });
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        try {
+          if (localStorage.getItem(STORAGE_THEME_KEY) === 'dark') document.documentElement.classList.add('dark');
+        } catch (_) {}
+        if (window.lucide) lucide.createIcons();
+        bindEvents();
+        renderRadarCampaigns();
+        fetchLiveHolidays();
+        if (state.clockInterval) clearInterval(state.clockInterval);
+        state.clockInterval = setInterval(tickClock, 1000);
+
+        // Restore ONLY if user previously opted-in AND a real user report was saved (never preload any sample!)
+        try {
+          if (localStorage.getItem(STORAGE_REMEMBER_KEY) === 'true') {
+            const saved = localStorage.getItem(STORAGE_LAST_REPORT_KEY);
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              if (parsed?.headers?.length && parsed?.matrix?.length) {
+                activateReport(parsed.headers, parsed.matrix, parsed.fileName, null, false);
+              }
+            }
+          }
+        } catch (_) {}
+      });
+    })();
+  </script>
+</body>
+</html>
