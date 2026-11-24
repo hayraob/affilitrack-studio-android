@@ -22,9 +22,10 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools
+      - name: Set up Android SDK
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
       - name: Prepare app
         run: |
           mkdir -p www
