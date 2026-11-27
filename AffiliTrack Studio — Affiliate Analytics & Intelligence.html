@@ -697,13 +697,29 @@
           </div>
 
           <div class="lg:col-span-6 card rounded-3xl p-5 sm:p-6">
-            <h2 class="text-base font-bold">Performa per ID Konten</h2>
-            <p class="text-xs muted mt-0.5 mb-4">Klik baris untuk melihat produk yang terjual dari konten tersebut</p>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <div>
+                <h2 class="text-base font-bold">Performa per ID Konten</h2>
+                <p class="text-xs muted mt-0.5">Klik baris untuk melihat produk terkait • Upload Date didekode otomatis (WIB)</p>
+              </div>
+            </div>
+
+            <!-- Quick TikTok Video ID Upload Date Checker (Local BigInt Decoding) -->
+            <div class="mb-4 p-3 rounded-2xl subtle space-y-2">
+              <div class="flex items-center gap-2">
+                <input id="tiktokIdCheckInput" type="text" inputmode="numeric" placeholder="Cek Upload Date dari ID Video TikTok (contoh: 7666316334644399380)"
+                  class="flex-1 min-w-0 h-9 px-3 rounded-xl card text-xs num focus:outline-none" />
+                <button id="btnCheckTiktokId" type="button" class="shrink-0 h-9 px-3 rounded-xl bg-[#111214] dark:bg-white text-white dark:text-[#111214] text-xs font-bold hover:opacity-90 active:scale-95 transition">Cek</button>
+              </div>
+              <p id="tiktokIdCheckResult" class="hidden text-[11px] font-medium px-1"></p>
+            </div>
+
             <div class="overflow-x-auto scroll-thin">
-              <table class="w-full text-left border-collapse text-xs min-w-[440px]">
+              <table class="w-full text-left border-collapse text-xs min-w-[580px]">
                 <thead>
                   <tr class="border-b border-[var(--border-hairline)] text-[10px] uppercase tracking-wider muted">
                     <th class="py-2 pr-2">ID Konten</th>
+                    <th class="py-2 px-2">Upload Date</th>
                     <th class="py-2 px-2">Tipe</th>
                     <th class="py-2 px-2 text-right">Unit</th>
                     <th class="py-2 px-2 text-right">Komisi Cair</th>
@@ -1105,6 +1121,7 @@
         { key: 'indirect', label: 'Pesanan Tidak Langsung', aliases: ['Tidak Langsung', 'Indirect'] },
         { key: 'contentType', label: 'Jenis Konten', aliases: ['Jenis Konten', 'Content Type'] },
         { key: 'contentId', label: 'ID Konten', aliases: ['ID Konten', 'Content ID'] },
+        { key: 'uploadDate', label: 'Upload Date Konten', aliases: ['Upload Date', 'Tanggal Upload', 'Video Upload Date', 'Publish Date'] },
         { key: 'rateStd', label: 'Rate Komisi Standar', aliases: ['Standar', 'Standard Commission Rate', 'Rate Komisi'] },
         { key: 'gmv', label: 'GMV', aliases: ['GMV', 'Total Pembayaran', 'Nilai Pesanan'] },
         { key: 'estStd', label: 'Est. Komisi Standar', aliases: ['Perkiraan komisi standar', 'Est. Standard Commission', 'Estimasi komisi'] },
@@ -1229,6 +1246,60 @@
         return 'PROCESSING';
       }
 
+      // --- V1.2: Local/Offline TikTok Video ID Timestamp Decoder (BigInt, Asia/Jakarta WIB) ---
+      function formatWibUploadStamp(dateObj) {
+        if (!dateObj || isNaN(dateObj.getTime())) return null;
+        try {
+          const datePart = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Jakarta', month: 'long', day: 'numeric', year: 'numeric'
+          }).format(dateObj);
+          const timePart = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Jakarta', hour: 'numeric', minute: '2-digit', hour12: true
+          }).format(dateObj);
+          return `${datePart} • ${timePart} WIB`;
+        } catch (_) {
+          // Fallback manual WIB (UTC+7)
+          const wib = new Date(dateObj.getTime() + 7 * 3600000);
+          const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+          let h = wib.getUTCHours();
+          const ap = h >= 12 ? 'PM' : 'AM';
+          h = h % 12 || 12;
+          return `${months[wib.getUTCMonth()]} ${wib.getUTCDate()}, ${wib.getUTCFullYear()} • ${h}:${String(wib.getUTCMinutes()).padStart(2, '0')} ${ap} WIB`;
+        }
+      }
+
+      function resolveContentUploadDate(rawId, verifiedMetaRaw = '') {
+        // 1. Prioritize verified upload-date metadata if present in the source report
+        if (verifiedMetaRaw) {
+          const verifiedDate = parseDateValue(verifiedMetaRaw);
+          if (verifiedDate) {
+            return { valid: true, source: 'metadata', label: formatWibUploadStamp(verifiedDate), timestampMs: verifiedDate.getTime() };
+          }
+        }
+        // 2. Local offline BigInt decoding from TikTok Video ID
+        const clean = String(rawId || '').trim();
+        if (!clean || clean === '-' || clean === '/') {
+          return { valid: false, source: 'none', label: 'Upload date unavailable', timestampMs: null };
+        }
+        if (!/^\d{15,20}$/.test(clean)) {
+          return { valid: false, source: 'invalid', label: 'Invalid ID', timestampMs: null };
+        }
+        try {
+          const unixSec = Number(BigInt(clean) >> 32n);
+          const minValid = 1451606400; // 2016-01-01 UTC
+          const maxValid = Math.floor(Date.now() / 1000) + 86400; // <= now + 1 day buffer
+          if (!Number.isFinite(unixSec) || unixSec < minValid || unixSec > maxValid) {
+            return { valid: false, source: 'unsupported', label: 'Upload date unavailable', timestampMs: null };
+          }
+          const dt = new Date(unixSec * 1000);
+          const formatted = formatWibUploadStamp(dt);
+          if (!formatted) return { valid: false, source: 'unsupported', label: 'Upload date unavailable', timestampMs: null };
+          return { valid: true, source: 'bigint', label: formatted, timestampMs: dt.getTime() };
+        } catch (_) {
+          return { valid: false, source: 'invalid', label: 'Invalid ID', timestampMs: null };
+        }
+      }
+
       function showToast(msg, type = 'info') {
         const c = document.getElementById('toastContainer');
         const border = type === 'success' ? 'border-emerald-400' : type === 'error' ? 'border-rose-400' : 'border-white/50';
@@ -1337,6 +1408,7 @@
             indirectRaw: String(get('indirect') || '').trim(),
             contentType: String(get('contentType') || 'Tidak Tercatat').trim(),
             contentId: contentId || '-',
+            uploadDateInfo: resolveContentUploadDate(contentId, String(get('uploadDate') || '').trim()),
             rateStr: String(get('rateStd') || '').trim(),
             gmv, estComm, actBonus, estBonus, taxes, partnerShare, finalEarned,
             orderDate: orderDateObj, orderDateIso: toIsoDate(orderDateObj),
@@ -1818,8 +1890,9 @@
           if (r.statusKey === 'PAID') sh.paid += r.finalEarned; else if (r.statusKey !== 'INELIGIBLE') sh.pending += r.estComm;
 
           const ck = `${r.contentType}||${r.contentId}`;
-          if (!cidMap.has(ck)) cidMap.set(ck, { id: r.contentId, type: r.contentType, units: 0, paid: 0, pending: 0 });
+          if (!cidMap.has(ck)) cidMap.set(ck, { id: r.contentId, type: r.contentType, uploadInfo: r.uploadDateInfo || resolveContentUploadDate(r.contentId), units: 0, paid: 0, pending: 0 });
           const c = cidMap.get(ck);
+          if (!c.uploadInfo.valid && r.uploadDateInfo?.valid) c.uploadInfo = r.uploadDateInfo;
           c.units += r.units; if (r.statusKey === 'PAID') c.paid += r.finalEarned; else if (r.statusKey !== 'INELIGIBLE') c.pending += r.estComm;
         });
 
@@ -1829,8 +1902,15 @@
         }).join('') || `<tr><td colspan="5" class="py-6 text-center muted">Tidak ada toko.</td></tr>`;
 
         document.getElementById('contentTableBody').innerHTML = Array.from(cidMap.values()).sort((a, b) => (b.paid + b.pending) - (a.paid + a.pending)).slice(0, 20).map(c => `
-          <tr data-cid-detail="${escapeHtml(c.id)}" class="cid-row cursor-pointer hover:bg-[var(--bg-subtle)]"><td class="py-2.5 pr-2 num font-semibold">${escapeHtml(c.id)}</td><td class="py-2.5 px-2"><span class="px-2 py-0.5 rounded-md text-[10px] font-semibold subtle">${escapeHtml(c.type)}</span></td><td class="py-2.5 px-2 text-right num font-bold">${formatNum(c.units)}</td><td class="py-2.5 px-2 text-right num font-bold text-emerald-700 dark:text-emerald-400">${formatIDR(c.paid)}</td><td class="py-2.5 pl-2 text-right num text-sky-700 dark:text-sky-400">${formatIDR(c.pending)}</td></tr>
-        `).join('') || `<tr><td colspan="5" class="py-6 text-center muted">Tidak ada ID konten.</td></tr>`;
+          <tr data-cid-detail="${escapeHtml(c.id)}" class="cid-row cursor-pointer hover:bg-[var(--bg-subtle)]">
+            <td class="py-2.5 pr-2 num font-semibold whitespace-nowrap">${escapeHtml(c.id)}</td>
+            <td class="py-2.5 px-2 whitespace-nowrap text-[11px] ${c.uploadInfo.valid ? 'font-medium' : 'subtle-txt italic'}">${escapeHtml(c.uploadInfo.label)}</td>
+            <td class="py-2.5 px-2"><span class="px-2 py-0.5 rounded-md text-[10px] font-semibold subtle">${escapeHtml(c.type)}</span></td>
+            <td class="py-2.5 px-2 text-right num font-bold">${formatNum(c.units)}</td>
+            <td class="py-2.5 px-2 text-right num font-bold text-emerald-700 dark:text-emerald-400">${formatIDR(c.paid)}</td>
+            <td class="py-2.5 pl-2 text-right num text-sky-700 dark:text-sky-400">${formatIDR(c.pending)}</td>
+          </tr>
+        `).join('') || `<tr><td colspan="6" class="py-6 text-center muted">Tidak ada ID konten.</td></tr>`;
       }
 
       // --- Local Rule-Based Business Insights ---
@@ -1969,6 +2049,7 @@
             <div>
               <div class="flex items-center justify-between gap-2"><span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">Peringkat #${idx + 1}</span><span class="text-[11px] muted">${escapeHtml(c.type)} • ${c.days.size}H</span></div>
               <p class="num text-xs font-bold mt-2 truncate">ID: ${escapeHtml(c.id)}</p>
+              <p class="text-[10px] muted mt-0.5 truncate">Upload: ${escapeHtml(resolveContentUploadDate(c.id).label)}</p>
               <p class="num text-lg font-extrabold text-emerald-700 dark:text-emerald-400 mt-1">${formatIDR(c.validComm)}</p>
               <p class="text-[11px] muted">${formatNum(c.units)} unit • GMV ${formatCompactIDR(c.gmv)}</p>
             </div>
@@ -2407,6 +2488,16 @@
         const rRows = [['Prioritas', 'Judul', 'Temuan', 'Saran Aksi', 'Bukti']];
         state.recommendations.forEach(r => rRows.push([r.priority, r.title, r.detected, r.action, r.evidence]));
         XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rRows), 'Business Insights');
+        const cMap = new Map();
+        data.forEach(r => {
+          const ck = `${r.contentType}||${r.contentId}`;
+          if (!cMap.has(ck)) cMap.set(ck, { id: r.contentId, up: (r.uploadDateInfo || resolveContentUploadDate(r.contentId)).label, type: r.contentType, units: 0, paid: 0, pending: 0 });
+          const c = cMap.get(ck);
+          c.units += r.units; if (r.statusKey === 'PAID') c.paid += r.finalEarned; else if (r.statusKey !== 'INELIGIBLE') c.pending += r.estComm;
+        });
+        const cRows = [['ID Konten', 'Upload Date (WIB)', 'Tipe Konten', 'Unit Terjual', 'Komisi Cair', 'Komisi Pending']];
+        Array.from(cMap.values()).sort((a, b) => (b.paid + b.pending) - (a.paid + a.pending)).forEach(c => cRows.push([c.id, c.up, c.type, c.units, Math.round(c.paid), Math.round(c.pending)]));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cRows), 'Konten');
         XLSX.writeFile(wb, `analisis_affiliate_${toIsoDate(new Date())}.xlsx`);
         toggleModal('exportModal', false);
         showToast('Workbook Excel (.xlsx) berhasil diunduh.', 'success');
@@ -2619,8 +2710,9 @@
           const row = e.target.closest('.cid-row'); if (!row) return;
           const cid = row.dataset.cidDetail, matches = state.filteredRecords.filter(r => r.contentId === cid);
           const prods = aggregateProducts(matches).sort((a, b) => b.validComm - a.validComm);
+          const upInfo = matches.find(m => m.uploadDateInfo?.valid)?.uploadDateInfo || resolveContentUploadDate(cid);
           document.getElementById('modalTitle').textContent = `ID Konten: ${cid}`;
-          document.getElementById('modalSubtitle').textContent = `${matches.length} baris • ${prods.length} produk terkait`;
+          document.getElementById('modalSubtitle').textContent = `Upload Date: ${upInfo.label} • ${matches.length} baris • ${prods.length} produk terkait`;
           document.getElementById('modalBody').innerHTML = prods.map(p => `<div class="p-3 rounded-xl subtle flex items-center justify-between gap-3"><div class="min-w-0"><p class="font-semibold line-clamp-2">${escapeHtml(p.name)}</p><p class="text-[11px] muted">${escapeHtml(p.shop)} • ${formatNum(p.units)} unit</p></div><p class="num font-bold text-emerald-700 dark:text-emerald-400 shrink-0">${formatIDR(p.validComm)}</p></div>`).join('');
           toggleModal('detailModal', true);
         });
@@ -2637,6 +2729,28 @@
             <div class="p-3.5 rounded-2xl subtle"><p class="text-[10px] font-bold uppercase subtle-txt">Langkah &amp; Potensi Manfaat</p><p class="mt-1"><strong>Aksi:</strong> ${escapeHtml(r.action)}<br/><strong>Potensi:</strong> ${escapeHtml(r.benefit)}</p></div>`;
           toggleModal('detailModal', true);
         });
+
+        const runTiktokIdCheck = () => {
+          const inp = document.getElementById('tiktokIdCheckInput');
+          const out = document.getElementById('tiktokIdCheckResult');
+          if (!inp || !out) return;
+          const val = inp.value.trim();
+          if (!val) {
+            out.classList.add('hidden');
+            return;
+          }
+          const res = resolveContentUploadDate(val);
+          out.classList.remove('hidden');
+          if (res.valid) {
+            out.className = 'text-[11px] font-semibold px-1 text-emerald-700 dark:text-emerald-400';
+            out.textContent = `Upload Date: ${res.label}`;
+          } else {
+            out.className = 'text-[11px] font-semibold px-1 text-rose-700 dark:text-rose-400';
+            out.textContent = `${res.label} — pastikan ID video TikTok berupa angka 15–20 digit yang valid.`;
+          }
+        };
+        document.getElementById('btnCheckTiktokId').addEventListener('click', runTiktokIdCheck);
+        document.getElementById('tiktokIdCheckInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runTiktokIdCheck(); } });
 
         document.getElementById('btnCopyDiscord').addEventListener('click', () => {
           const text = 'Hayframe', done = () => showToast('Username Discord "Hayframe" disalin!', 'success');
