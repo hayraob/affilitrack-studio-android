@@ -1,4 +1,5 @@
 name: Build AffiliTrack Studio APK
+# Rebuild trigger for the latest V1.2 HTML source.
 
 on:
   workflow_dispatch:
